@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>스도쿠 - 광고 없는 프리미엄 스도쿠 게임</title>
+  <meta name="description" content="광고가 전혀 없고 깔끔한 디자인의 모던 스도쿠 웹 게임입니다. 다양한 난이도, 메모 기능, 힌트, 다크 모드를 지원합니다.">
+  <meta property="og:title" content="스도쿠 - 광고 없는 프리미엄 스도쿠 게임">
+  <meta property="og:description" content="깔끔하고 반응형 레이아웃을 갖춘 무료 무광고 스도쿠 게임">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            sudoku: {
+              light: '#f8fafc',
+              dark: '#0f172a',
+              boardLight: '#ffffff',
+              boardDark: '#1e293b',
+              borderLight: '#334155',
+              borderDark: '#94a3b8',
+              accent: '#2563eb',
+              accentHover: '#1d4ed8',
+              highlightLight: '#e2e8f0',
+              highlightDark: '#334155',
+              matchLight: '#cbd5e1',
+              matchDark: '#475569',
+              selectedLight: '#bfdbfe',
+              selectedDark: '#1e3a8a',
+              errorLight: '#fee2e2',
+              errorDark: '#7f1d1d',
+              errorText: '#ef4444'
+            }
+          },
+          fontFamily: {
+            sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Sudoku Grid & Styling */
+    :root {
+      --cell-size: min(10.5vw, 56px);
+      --thick-border: 2.5px solid;
+      --thin-border: 1px solid;
+    }
+
+    /* Prevent accidental zoom on double taps in mobile */
+    * {
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    input, button {
+      user-select: auto;
+      -webkit-user-select: auto;
+    }
+
+    .sudoku-grid {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+      width: 100%;
+      height: 100%;
+      max-width: 504px;
+      aspect-ratio: 1 / 1;
+      background-color: #ffffff;
+      box-sizing: border-box;
+    }
+    .dark .sudoku-grid {
+      background-color: #0f172a;
+    }
+
+    #boardWrapper {
+      border: 3.5px solid #1e293b !important;
+    }
+    .dark #boardWrapper {
+      border-color: #94a3b8 !important;
+    }
+
+    .sudoku-cell {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.2rem, 4.5vw, 1.9rem);
+      font-weight: 500;
+      cursor: pointer;
+      box-sizing: border-box;
+      transition: background-color 0.12s ease, transform 0.08s ease;
+      border-right: 1px solid #cbd5e1;
+      border-bottom: 1px solid #cbd5e1;
+      border-top: none;
+      border-left: none;
+    }
+    .dark .sudoku-cell {
+      border-right-color: #334155;
+      border-bottom-color: #334155;
+    }
+
+    /* 3x3 Box Thick Borders (3줄마다 굵은 구분선) */
+    .sudoku-cell[data-col="2"],
+    .sudoku-cell[data-col="5"] {
+      border-right: 3.5px solid #1e293b !important;
+    }
+    .dark .sudoku-cell[data-col="2"],
+    .dark .sudoku-cell[data-col="5"] {
+      border-right: 3.5px solid #94a3b8 !important;
+    }
+
+    .sudoku-cell[data-row="2"],
+    .sudoku-cell[data-row="5"] {
+      border-bottom: 3.5px solid #1e293b !important;
+    }
+    .dark .sudoku-cell[data-row="2"],
+    .dark .sudoku-cell[data-row="5"] {
+      border-bottom: 3.5px solid #94a3b8 !important;
+    }
+
+    /* Outer right and bottom edges */
+    .sudoku-cell[data-col="8"] {
+      border-right: none !important;
+    }
+    .sudoku-cell[data-row="8"] {
+      border-bottom: none !important;
+    }
+
+    /* Pencil notes 3x3 grid inside cell */
+    .pencil-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      width: 100%;
+      height: 100%;
+      padding: 2px;
+      pointer-events: none;
+    }
+    .pencil-num {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(0.55rem, 1.8vw, 0.75rem);
+      font-weight: 600;
+      line-height: 1;
+      color: #64748b;
+    }
+    .dark .pencil-num {
+      color: #94a3b8;
+    }
+
+    /* Error animation */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-4px); }
+      40%, 80% { transform: translateX(4px); }
+    }
+    .cell-shake {
+      animation: shake 0.35s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    /* Confetti animation */
+    @keyframes confetti-fall {
+      0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(600px) rotate(720deg); opacity: 0; }
+    }
+    .confetti-piece {
+      position: absolute;
+      width: 10px;
+      height: 14px;
+      opacity: 0.9;
+      animation: confetti-fall 3s ease-in-out forwards;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+
+  <!-- Main Container -->
+  <div class="flex-1 flex flex-col max-w-xl mx-auto w-full px-3 py-2 sm:py-4">
+    
+    <!-- Top Bar: Logo, Difficulty, Dark Mode, New Game -->
+    <header class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M9 4v16M15 4v16"></path>
+          </svg>
+        </div>
+        <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">스도쿠</h1>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 font-medium">광고 없음</span>
+      </div>
+
+      <div class="flex items-center gap-1 sm:gap-2">
+        <!-- Dark Mode Toggle -->
+        <button id="themeToggleBtn" aria-label="테마 전환" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+          <svg id="moonIcon" class="w-5 h-5 hidden dark:block text-amber-300" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
+          </svg>
+          <svg id="sunIcon" class="w-5 h-5 block dark:hidden text-slate-700" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+          </svg>
+        </button>
+
+        <!-- New Game Button -->
+        <button id="newGameBtn" class="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+          </svg>
+          <span>새 게임</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Game Status Header: Difficulty Selector, Mistakes, Timer -->
+    <div class="flex items-center justify-between py-2 text-sm">
+      <!-- Difficulty Tabs -->
+      <div class="relative">
+        <button id="diffMenuBtn" class="flex items-center gap-1.5 font-medium px-2.5 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition">
+          <span id="currentDiffLabel">보통</span>
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+
+        <!-- Difficulty Dropdown Menu -->
+        <div id="diffMenu" class="hidden absolute left-0 top-full mt-1 w-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg z-30 py-1">
+          <button data-diff="easy" class="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 dark:hover:bg-slate-800 font-medium text-slate-700 dark:text-slate-300">쉬움 (Easy)</button>
+          <button data-diff="medium" class="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 dark:hover:bg-slate-800 font-medium text-slate-700 dark:text-slate-300">보통 (Medium)</button>
+          <button data-diff="hard" class="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 dark:hover:bg-slate-800 font-medium text-slate-700 dark:text-slate-300">어려움 (Hard)</button>
+          <button data-diff="expert" class="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 dark:hover:bg-slate-800 font-medium text-slate-700 dark:text-slate-300">전문가 (Expert)</button>
+        </div>
+      </div>
+
+      <!-- Mistakes Display -->
+      <div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 font-medium">
+        <span>오류:</span>
+        <span id="mistakeCount" class="font-bold text-red-500">0</span>
+        <span class="text-xs">/ 3</span>
+      </div>
+
+      <!-- Timer & Pause -->
+      <div class="flex items-center gap-1.5 bg-slate-200/80 dark:bg-slate-800 px-2.5 py-1 rounded-lg text-slate-700 dark:text-slate-300">
+        <span id="timerText" class="font-mono font-semibold tracking-wider">00:00</span>
+        <button id="pauseBtn" aria-label="타이머 일시정지" class="p-1 hover:text-blue-600 dark:hover:text-blue-400 transition">
+          <svg id="pauseIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 9v6m4-6v6"></path>
+          </svg>
+          <svg id="playIcon" class="w-4 h-4 hidden text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sudoku Board Container -->
+    <div class="relative w-full flex items-center justify-center my-auto py-1">
+      <div id="boardWrapper" class="relative w-full max-w-[480px] aspect-square rounded-xl overflow-hidden shadow-lg bg-white dark:bg-slate-900">
+        <!-- 9x9 Grid -->
+        <div id="sudokuBoard" class="sudoku-grid h-full select-none" role="grid" aria-label="스도쿠 판"></div>
+
+        <!-- Pause Overlay -->
+        <div id="pauseOverlay" class="hidden absolute inset-0 bg-slate-900/85 backdrop-blur-sm z-20 flex flex-col items-center justify-center text-white gap-3 p-4 text-center">
+          <div class="p-4 bg-blue-600/20 rounded-full border border-blue-500/30">
+            <svg class="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h2 class="text-xl font-bold">게임이 일시정지되었습니다</h2>
+          <p class="text-sm text-slate-300 max-w-xs">집중할 준비가 되셨을 때 재개 버튼을 눌러주세요.</p>
+          <button id="resumeBtn" class="mt-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold flex items-center gap-2 shadow-lg transition">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"></path>
+            </svg>
+            <span>게임 재개</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Toolbar (Undo, Erase, Notes, Hint) -->
+    <div class="grid grid-cols-4 gap-2 my-2 max-w-[480px] w-full mx-auto">
+      <!-- Undo -->
+      <button id="undoBtn" class="flex flex-col items-center justify-center p-2 rounded-xl bg-slate-200/70 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition active:scale-95">
+        <svg class="w-5 h-5 mb-0.5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a5 5 0 015 5v2m0 0l-4-4m4 4l4-4M3 10l4-4M3 10l4 4"></path>
+        </svg>
+        <span class="text-xs font-medium">실행 취소</span>
+      </button>
+
+      <!-- Erase -->
+      <button id="eraseBtn" class="flex flex-col items-center justify-center p-2 rounded-xl bg-slate-200/70 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition active:scale-95">
+        <svg class="w-5 h-5 mb-0.5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+        </svg>
+        <span class="text-xs font-medium">지우기</span>
+      </button>
+
+      <!-- Pencil / Notes Mode -->
+      <button id="pencilBtn" class="relative flex flex-col items-center justify-center p-2 rounded-xl bg-slate-200/70 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition active:scale-95">
+        <span id="pencilStatus" class="absolute top-1 right-2 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-slate-300 dark:bg-slate-700 text-slate-600 dark:text-slate-300 uppercase">OFF</span>
+        <svg class="w-5 h-5 mb-0.5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+        </svg>
+        <span class="text-xs font-medium">메모</span>
+      </button>
+
+      <!-- Hint -->
+      <button id="hintBtn" class="relative flex flex-col items-center justify-center p-2 rounded-xl bg-slate-200/70 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition active:scale-95">
+        <span id="hintCount" class="absolute top-1 right-2 text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-500 text-white">3</span>
+        <svg class="w-5 h-5 mb-0.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+        </svg>
+        <span class="text-xs font-medium">힌트</span>
+      </button>
+    </div>
+
+    <!-- Number Pad (1-9) -->
+    <div class="w-full max-w-[480px] mx-auto pb-1">
+      <div id="numberPad" class="grid grid-cols-9 gap-1 sm:gap-1.5">
+        <!-- Generated via JS for 1-9 with remaining count badge -->
+      </div>
+    </div>
+
+    <!-- Bottom utility buttons: Restart & How to Play -->
+    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-800 max-w-[480px] w-full mx-auto">
+      <button id="restartBtn" class="hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1 transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span>퍼즐 초기화</span>
+      </button>
+
+      <button id="helpBtn" class="hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1 transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>단축키 및 도움말</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Victory Celebration Modal -->
+  <div id="victoryModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center overflow-hidden">
+      <!-- Confetti Container -->
+      <div id="confettiContainer" class="pointer-events-none absolute inset-0 overflow-hidden"></div>
+
+      <div class="w-16 h-16 mx-auto mb-4 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center shadow-inner">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+
+      <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-1">스도쿠 완료!</h3>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mb-5">축하합니다! 완벽하게 퍼즐을 해결하셨습니다.</p>
+
+      <div class="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-2xl mb-6 text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-slate-800">
+        <div>
+          <div class="text-[11px] text-slate-400 font-medium">난이도</div>
+          <div id="modalDiff" class="text-sm font-bold text-blue-600 dark:text-blue-400 mt-0.5">보통</div>
+        </div>
+        <div>
+          <div class="text-[11px] text-slate-400 font-medium">클리어 시간</div>
+          <div id="modalTime" class="text-sm font-bold mt-0.5 font-mono">04:15</div>
+        </div>
+        <div>
+          <div class="text-[11px] text-slate-400 font-medium">오류 횟수</div>
+          <div id="modalMistakes" class="text-sm font-bold mt-0.5">0</div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <button id="modalNewGameBtn" class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md transition active:scale-[0.99]">
+          새 게임 시작하기
+        </button>
+        <button id="modalCloseBtn" class="w-full py-2.5 px-4 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-sm font-medium transition">
+          판 확인하기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over Modal (Mistakes >= 3) -->
+  <div id="gameOverModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center">
+      <div class="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 rounded-2xl flex items-center justify-center shadow-inner">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </div>
+      <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-1">게임 오버</h3>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">오류 한도(3회)를 초과하였습니다.<br>다시 도전해보세요!</p>
+      <div class="flex flex-col gap-2">
+        <button id="gameOverRestartBtn" class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md transition">
+          다시 도전하기
+        </button>
+        <button id="gameOverNewBtn" class="w-full py-2.5 px-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-semibold transition">
+          새 게임 선택
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help & Shortcuts Modal -->
+  <div id="helpModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-4">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">단축키 및 플레이 방법</h3>
+        <button id="closeHelpBtn" class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs text-slate-600 dark:text-slate-300">
+        <div class="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800">
+          <span class="font-medium">숫자 입력</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">1 ~ 9</kbd>
+        </div>
+        <div class="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800">
+          <span class="font-medium">셀 이동</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">방향키 (↑ ↓ ← →)</kbd>
+        </div>
+        <div class="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800">
+          <span class="font-medium">지우기</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">Backspace / Delete</kbd>
+        </div>
+        <div class="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800">
+          <span class="font-medium">메모(연필) 모드 토글</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">N 또는 P</kbd>
+        </div>
+        <div class="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800">
+          <span class="font-medium">실행 취소</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">Ctrl + Z / U</kbd>
+        </div>
+        <div class="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800">
+          <span class="font-medium">힌트 사용</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">H</kbd>
+        </div>
+        <div class="flex justify-between items-center py-1">
+          <span class="font-medium">일시정지 / 재개</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-300 dark:border-slate-700 font-mono">Space</kbd>
+        </div>
+      </div>
+      <button id="helpOkBtn" class="mt-5 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-xl transition">
+        확인
+      </button>
+    </div>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    (function () {
+      'use strict';
+
+      // --- Theme Management ---
+      const htmlEl = document.documentElement;
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      
+      const savedTheme = localStorage.getItem('sudoku_theme');
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        htmlEl.classList.add('dark');
+      } else {
+        htmlEl.classList.remove('dark');
+      }
+
+      themeToggleBtn.addEventListener('click', () => {
+        htmlEl.classList.toggle('dark');
+        const isDark = htmlEl.classList.contains('dark');
+        localStorage.setItem('sudoku_theme', isDark ? 'dark' : 'light');
+      });
+
+      // --- Sudoku Engine & Solver / Generator ---
+      // A reliable, fast generator with isomorphic transformation ensuring 100% unique, valid puzzles
+      const SudokuEngine = {
+        // Sample base solved boards
+        baseBoards: [
+          [
+            [5,3,4,6,7,8,9,1,2],
+            [6,7,2,1,9,5,3,4,8],
+            [1,9,8,3,4,2,5,6,7],
+            [8,5,9,7,6,1,4,2,3],
+            [4,2,6,8,5,3,7,9,1],
+            [7,1,3,9,2,4,8,5,6],
+            [9,6,1,5,3,7,2,8,4],
+            [2,8,7,4,1,9,6,3,5],
+            [3,4,5,2,8,6,1,7,9]
+          ],
+          [
+            [1,2,3,4,5,6,7,8,9],
+            [4,5,6,7,8,9,1,2,3],
+            [7,8,9,1,2,3,4,5,6],
+            [2,3,4,5,6,7,8,9,1],
+            [5,6,7,8,9,1,2,3,4],
+            [8,9,1,2,3,4,5,6,7],
+            [3,4,5,6,7,8,9,1,2],
+            [6,7,8,9,1,2,3,4,5],
+            [9,1,2,3,4,5,6,7,8]
+          ]
+        ],
+
+        // Deep copy 9x9 matrix
+        copyBoard(b) {
+          return b.map(row => [...row]);
+        },
+
+        // Fast backtracking solver to check validity / count solutions
+        solve(board, maxSolutions = 2) {
+          let solutions = 0;
+          const b = this.copyBoard(board);
+
+          const isValid = (grid, r, c, num) => {
+            for (let i = 0; i < 9; i++) {
+              if (grid[r][i] === num && i !== c) return false;
+              if (grid[i][c] === num && i !== r) return false;
+            }
+            const br = Math.floor(r / 3) * 3;
+            const bc = Math.floor(c / 3) * 3;
+            for (let i = 0; i < 3; i++) {
+              for (let j = 0; j < 3; j++) {
+                if (grid[br + i][bc + j] === num && (br + i !== r || bc + j !== c)) return false;
+              }
+            }
+            return true;
+          };
+
+          const solveHelper = () => {
+            for (let r = 0; r < 9; r++) {
+              for (let c = 0; c < 9; c++) {
+                if (b[r][c] === 0) {
+                  for (let n = 1; n <= 9; n++) {
+                    if (isValid(b, r, c, n)) {
+                      b[r][c] = n;
+                      solveHelper();
+                      b[r][c] = 0;
+                      if (solutions >= maxSolutions) return;
+                    }
+                  }
+                  return;
+                }
+              }
+            }
+            solutions++;
+          };
+
+          solveHelper();
+          return solutions;
+        },
+
+        // Solve and return the solution grid
+        findSolution(board) {
+          const b = this.copyBoard(board);
+
+          const isValid = (grid, r, c, num) => {
+            for (let i = 0; i < 9; i++) {
+              if (grid[r][i] === num) return false;
+              if (grid[i][c] === num) return false;
+            }
+            const br = Math.floor(r / 3) * 3;
+            const bc = Math.floor(c / 3) * 3;
+            for (let i = 0; i < 3; i++) {
+              for (let j = 0; j < 3; j++) {
+                if (grid[br + i][bc + j] === num) return false;
+              }
+            }
+            return true;
+          };
+
+          const solveBacktrack = () => {
+            for (let r = 0; r < 9; r++) {
+              for (let c = 0; c < 9; c++) {
+                if (b[r][c] === 0) {
+                  for (let n = 1; n <= 9; n++) {
+                    if (isValid(b, r, c, n)) {
+                      b[r][c] = n;
+                      if (solveBacktrack()) return true;
+                      b[r][c] = 0;
+                    }
+                  }
+                  return false;
+                }
+              }
+            }
+            return true;
+          };
+
+          if (solveBacktrack()) return b;
+          return null;
+        },
+
+        // Generates a fully randomized valid 9x9 grid via transformations
+        generateFullBoard() {
+          let b = this.copyBoard(this.baseBoards[Math.floor(Math.random() * this.baseBoards.length)]);
+
+          // 1. Number permutation (1-9 map)
+          const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+          for (let i = digits.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [digits[i], digits[j]] = [digits[j], digits[i]];
+          }
+          const map = {};
+          for (let i = 0; i < 9; i++) map[i + 1] = digits[i];
+          for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+              b[r][c] = map[b[r][c]];
+            }
+          }
+
+          // 2. Row swaps within 3x3 bands
+          for (let block = 0; block < 3; block++) {
+            for (let i = 0; i < 2; i++) {
+              const r1 = block * 3 + Math.floor(Math.random() * 3);
+              const r2 = block * 3 + Math.floor(Math.random() * 3);
+              [b[r1], b[r2]] = [b[r2], b[r1]];
+            }
+          }
+
+          // 3. Column swaps within 3x3 stacks
+          for (let block = 0; block < 3; block++) {
+            for (let i = 0; i < 2; i++) {
+              const c1 = block * 3 + Math.floor(Math.random() * 3);
+              const c2 = block * 3 + Math.floor(Math.random() * 3);
+              for (let r = 0; r < 9; r++) {
+                const temp = b[r][c1];
+                b[r][c1] = b[r][c2];
+                b[r][c2] = temp;
+              }
+            }
+          }
+
+          // 4. Band swaps (swap 3-row blocks)
+          if (Math.random() > 0.5) {
+            const b1 = Math.floor(Math.random() * 3);
+            const b2 = Math.floor(Math.random() * 3);
+            if (b1 !== b2) {
+              for (let i = 0; i < 3; i++) {
+                [b[b1 * 3 + i], b[b2 * 3 + i]] = [b[b2 * 3 + i], b[b1 * 3 + i]];
+              }
+            }
+          }
+
+          // 5. Transpose optionally (reflect over diagonal)
+          if (Math.random() > 0.5) {
+            const transposed = Array(9).fill(0).map(() => Array(9).fill(0));
+            for (let r = 0; r < 9; r++) {
+              for (let c = 0; c < 9; c++) {
+                transposed[c][r] = b[r][c];
+              }
+            }
+            b = transposed;
+          }
+
+          return b;
+        },
+
+        // Creates puzzle based on difficulty
+        generatePuzzle(difficulty) {
+          const solved = this.generateFullBoard();
+          const puzzle = this.copyBoard(solved);
+
+          // Clues removed target
+          let holesToDig = 38; // Easy: ~43 clues left
+          if (difficulty === 'medium') holesToDig = 46; // ~35 clues left
+          if (difficulty === 'hard') holesToDig = 52;   // ~29 clues left
+          if (difficulty === 'expert') holesToDig = 56; // ~25 clues left
+
+          const cells = [];
+          for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+              cells.push({ r, c });
+            }
+          }
+          // Shuffle cell order
+          for (let i = cells.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cells[i], cells[j]] = [cells[j], cells[i]];
+          }
+
+          let dug = 0;
+          for (const cell of cells) {
+            if (dug >= holesToDig) break;
+            const { r, c } = cell;
+            const tempVal = puzzle[r][c];
+            puzzle[r][c] = 0;
+
+            // Check if still uniquely solvable
+            if (this.solve(puzzle, 2) === 1) {
+              dug++;
+            } else {
+              puzzle[r][c] = tempVal; // Revert if not unique
+            }
+          }
+
+          return { puzzle, solution: solved };
+        }
+      };
+
+      // --- Game State ---
+      const state = {
+        difficulty: 'medium',
+        initialPuzzle: [],
+        solution: [],
+        currentBoard: [],
+        notes: Array(9).fill(0).map(() => Array(9).fill(0).map(() => new Set())),
+        selectedCell: null, // { r, c }
+        mistakes: 0,
+        maxMistakes: 3,
+        timerSeconds: 0,
+        isPaused: false,
+        timerInterval: null,
+        isPencilMode: false,
+        hintsRemaining: 3,
+        moveHistory: [], // stack for undo: { type: 'value'|'note', r, c, prevVal, newVal, prevNotes }
+        isCompleted: false
+      };
+
+      // --- DOM Elements ---
+      const boardEl = document.getElementById('sudokuBoard');
+      const timerText = document.getElementById('timerText');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const pauseIcon = document.getElementById('pauseIcon');
+      const playIcon = document.getElementById('playIcon');
+      const pauseOverlay = document.getElementById('pauseOverlay');
+      const resumeBtn = document.getElementById('resumeBtn');
+      const mistakeCount = document.getElementById('mistakeCount');
+      const numberPadEl = document.getElementById('numberPad');
+      const diffMenuBtn = document.getElementById('diffMenuBtn');
+      const diffMenu = document.getElementById('diffMenu');
+      const currentDiffLabel = document.getElementById('currentDiffLabel');
+      const pencilBtn = document.getElementById('pencilBtn');
+      const pencilStatus = document.getElementById('pencilStatus');
+      const undoBtn = document.getElementById('undoBtn');
+      const eraseBtn = document.getElementById('eraseBtn');
+      const hintBtn = document.getElementById('hintBtn');
+      const hintCount = document.getElementById('hintCount');
+      const restartBtn = document.getElementById('restartBtn');
+      const newGameBtn = document.getElementById('newGameBtn');
+      const victoryModal = document.getElementById('victoryModal');
+      const modalDiff = document.getElementById('modalDiff');
+      const modalTime = document.getElementById('modalTime');
+      const modalMistakes = document.getElementById('modalMistakes');
+      const modalNewGameBtn = document.getElementById('modalNewGameBtn');
+      const modalCloseBtn = document.getElementById('modalCloseBtn');
+      const gameOverModal = document.getElementById('gameOverModal');
+      const gameOverRestartBtn = document.getElementById('gameOverRestartBtn');
+      const gameOverNewBtn = document.getElementById('gameOverNewBtn');
+      const helpBtn = document.getElementById('helpBtn');
+      const helpModal = document.getElementById('helpModal');
+      const closeHelpBtn = document.getElementById('closeHelpBtn');
+      const helpOkBtn = document.getElementById('helpOkBtn');
+
+      const diffLabels = {
+        easy: '쉬움',
+        medium: '보통',
+        hard: '어려움',
+        expert: '전문가'
+      };
+
+      // --- Audio feedback (synthesizer clicks using Web Audio API) ---
+      let audioCtx = null;
+      function playTone(freq, type = 'sine', duration = 0.08) {
+        try {
+          if (!audioCtx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+          }
+          if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+          }
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + duration);
+        } catch (e) {
+          // Audio not allowed or error, silent fallback
+        }
+      }
+
+      function soundClick() { playTone(540, 'sine', 0.05); }
+      function soundError() { playTone(180, 'triangle', 0.22); }
+      function soundSuccess() {
+        playTone(523.25, 'sine', 0.1);
+        setTimeout(() => playTone(659.25, 'sine', 0.1), 100);
+        setTimeout(() => playTone(783.99, 'sine', 0.2), 200);
+      }
+
+      // --- Timer Control ---
+      function formatTime(totalSec) {
+        const min = Math.floor(totalSec / 60);
+        const sec = totalSec % 60;
+        return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+      }
+
+      function startTimer() {
+        stopTimer();
+        state.timerInterval = setInterval(() => {
+          if (!state.isPaused && !state.isCompleted) {
+            state.timerSeconds++;
+            timerText.textContent = formatTime(state.timerSeconds);
+          }
+        }, 1000);
+      }
+
+      function stopTimer() {
+        if (state.timerInterval) {
+          clearInterval(state.timerInterval);
+          state.timerInterval = null;
+        }
+      }
+
+      function togglePause(forcePause = null) {
+        if (state.isCompleted) return;
+        const newPause = forcePause !== null ? forcePause : !state.isPaused;
+        state.isPaused = newPause;
+
+        if (state.isPaused) {
+          pauseOverlay.classList.remove('hidden');
+          pauseIcon.classList.add('hidden');
+          playIcon.classList.remove('hidden');
+        } else {
+          pauseOverlay.classList.add('hidden');
+          pauseIcon.classList.remove('hidden');
+          playIcon.classList.add('hidden');
+        }
+      }
+
+      pauseBtn.addEventListener('click', () => togglePause());
+      resumeBtn.addEventListener('click', () => togglePause(false));
+
+      // --- Board Initialization & Rendering ---
+      function initBoardDOM() {
+        boardEl.innerHTML = '';
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            const cell = document.createElement('div');
+            cell.id = `cell-${r}-${c}`;
+            cell.dataset.row = r;
+            cell.dataset.col = c;
+            cell.className = 'sudoku-cell text-slate-800 dark:text-slate-100';
+            
+            cell.addEventListener('click', () => onCellClicked(r, c));
+            boardEl.appendChild(cell);
+          }
+        }
+      }
+
+      function initNumberPadDOM() {
+        numberPadEl.innerHTML = '';
+        for (let num = 1; num <= 9; num++) {
+          const btn = document.createElement('button');
+          btn.id = `pad-btn-${num}`;
+          btn.dataset.number = num;
+          btn.className = 'relative flex flex-col items-center justify-center py-2 sm:py-3 rounded-xl bg-blue-50 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-slate-700 text-blue-900 dark:text-blue-100 font-bold transition active:scale-95 border border-blue-100 dark:border-slate-700 shadow-sm';
+          btn.innerHTML = `
+            <span class="text-base sm:text-lg leading-none">${num}</span>
+            <span class="text-[9px] text-slate-400 dark:text-slate-400 mt-1 font-normal count-badge">9</span>
+          `;
+          btn.addEventListener('click', () => onNumberInput(num));
+          numberPadEl.appendChild(btn);
+        }
+      }
+
+      function updatePadRemainingCounts() {
+        const counts = Array(10).fill(0);
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            const val = state.currentBoard[r][c];
+            if (val >= 1 && val <= 9) {
+              const isInitial = state.initialPuzzle[r][c] !== 0;
+              const isWrong = !isInitial && (val !== state.solution[r][c] || isCellInConflict(r, c));
+              if (!isWrong) {
+                counts[val]++;
+              }
+            }
+          }
+        }
+
+        for (let num = 1; num <= 9; num++) {
+          const btn = document.getElementById(`pad-btn-${num}`);
+          if (!btn) continue;
+          const badge = btn.querySelector('.count-badge');
+          const remaining = 9 - counts[num];
+          if (badge) {
+            badge.textContent = remaining > 0 ? remaining : '✓';
+          }
+          if (remaining <= 0) {
+            btn.classList.add('opacity-40', 'pointer-events-none');
+          } else {
+            btn.classList.remove('opacity-40', 'pointer-events-none');
+          }
+        }
+      }
+
+      function renderBoard() {
+        const sel = state.selectedCell;
+        const selVal = sel ? state.currentBoard[sel.r][sel.c] : 0;
+        const isDark = htmlEl.classList.contains('dark');
+
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            const cell = document.getElementById(`cell-${r}-${c}`);
+            const val = state.currentBoard[r][c];
+            const isInitial = state.initialPuzzle[r][c] !== 0;
+            const notes = state.notes[r][c];
+
+            // Reset classes
+            cell.className = 'sudoku-cell';
+
+            // Check if cell is wrong (user-entered number that conflicts or does not match solution)
+            const hasConflict = isCellInConflict(r, c);
+            const isWrong = !isInitial && val > 0 && (hasConflict || (state.solution && val !== state.solution[r][c]));
+
+            // Determine Background Color / Highlights
+            const isSelected = sel && sel.r === r && sel.c === c;
+            const isSameRowColBox = sel && (sel.r === r || sel.c === c || (Math.floor(sel.r / 3) === Math.floor(r / 3) && Math.floor(sel.c / 3) === Math.floor(c / 3)));
+            const isSameNumber = selVal > 0 && val === selVal;
+
+            if (isWrong) {
+              if (isSelected) {
+                cell.classList.add('bg-red-100', 'dark:bg-red-950/80', 'ring-2', 'ring-red-500', 'ring-inset', 'z-10');
+              } else {
+                cell.classList.add('bg-red-50', 'dark:bg-red-950/50');
+              }
+            } else if (isSelected) {
+              cell.classList.add('bg-blue-200', 'dark:bg-blue-900/70', 'ring-2', 'ring-blue-500', 'ring-inset', 'z-10');
+            } else if (isInitial && hasConflict) {
+              cell.classList.add('bg-red-50', 'dark:bg-red-950/40');
+            } else if (isSameNumber) {
+              cell.classList.add('bg-blue-100/90', 'dark:bg-blue-950/60');
+            } else if (isSameRowColBox) {
+              cell.classList.add('bg-slate-100', 'dark:bg-slate-800/50');
+            } else {
+              cell.classList.add('bg-white', 'dark:bg-slate-900');
+            }
+
+            // Cell Value / Notes Rendering
+            if (val > 0) {
+              cell.innerHTML = `<span>${val}</span>`;
+              if (isInitial) {
+                cell.classList.add('font-bold', 'text-slate-900', 'dark:text-white');
+              } else if (isWrong) {
+                cell.classList.add('font-bold', 'text-red-600', 'dark:text-red-400');
+              } else {
+                cell.classList.add('font-semibold', 'text-blue-600', 'dark:text-blue-400');
+              }
+            } else if (notes.size > 0) {
+              // Render 3x3 pencil notes
+              let noteHtml = '<div class="pencil-grid">';
+              for (let n = 1; n <= 9; n++) {
+                noteHtml += `<span class="pencil-num">${notes.has(n) ? n : ''}</span>`;
+              }
+              noteHtml += '</div>';
+              cell.innerHTML = noteHtml;
+            } else {
+              cell.innerHTML = '';
+            }
+          }
+        }
+
+        updatePadRemainingCounts();
+      }
+
+      function isCellInConflict(r, c) {
+        const val = state.currentBoard[r][c];
+        if (val === 0) return false;
+
+        // Check row and column duplicates
+        for (let i = 0; i < 9; i++) {
+          if (i !== c && state.currentBoard[r][i] === val) return true;
+          if (i !== r && state.currentBoard[i][c] === val) return true;
+        }
+
+        // Check 3x3 block
+        const br = Math.floor(r / 3) * 3;
+        const bc = Math.floor(c / 3) * 3;
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            const cr = br + i;
+            const cc = bc + j;
+            if ((cr !== r || cc !== c) && state.currentBoard[cr][cc] === val) return true;
+          }
+        }
+        return false;
+      }
+
+      // --- Cell Click & Selection ---
+      function onCellClicked(r, c) {
+        if (state.isPaused || state.isCompleted) return;
+        state.selectedCell = { r, c };
+        soundClick();
+        renderBoard();
+      }
+
+      // --- Number Input & Pencil Handling ---
+      function onNumberInput(num) {
+        if (state.isPaused || state.isCompleted || !state.selectedCell) return;
+        const { r, c } = state.selectedCell;
+
+        // Cannot edit pre-filled initial clues
+        if (state.initialPuzzle[r][c] !== 0) return;
+
+        if (state.isPencilMode) {
+          // Pencil note toggle
+          const currentNotes = new Set(state.notes[r][c]);
+          const prevNotes = new Set(currentNotes);
+
+          if (currentNotes.has(num)) {
+            currentNotes.delete(num);
+          } else {
+            currentNotes.add(num);
+          }
+
+          state.moveHistory.push({
+            type: 'note',
+            r,
+            c,
+            prevNotes,
+            newNotes: new Set(currentNotes),
+            prevVal: state.currentBoard[r][c],
+            newVal: state.currentBoard[r][c]
+          });
+
+          state.notes[r][c] = currentNotes;
+          soundClick();
+          renderBoard();
+        } else {
+          // Regular number placement
+          const prevVal = state.currentBoard[r][c];
+          if (prevVal === num) return; // same number, no change
+
+          const prevNotes = new Set(state.notes[r][c]);
+
+          // Save to undo history
+          state.moveHistory.push({
+            type: 'value',
+            r,
+            c,
+            prevVal,
+            newVal: num,
+            prevNotes
+          });
+
+          state.currentBoard[r][c] = num;
+          state.notes[r][c].clear();
+
+          // Auto-remove this candidate from peers' notes
+          removePeerNotes(r, c, num);
+
+          // Check if placement conflicts or is a mistake against solution
+          const isCorrect = state.solution[r][c] === num;
+          const hasConflict = isCellInConflict(r, c);
+
+          if (!isCorrect || hasConflict) {
+            state.mistakes++;
+            mistakeCount.textContent = state.mistakes;
+            soundError();
+
+            const cellEl = document.getElementById(`cell-${r}-${c}`);
+            cellEl.classList.add('cell-shake');
+            setTimeout(() => cellEl.classList.remove('cell-shake'), 400);
+
+            if (state.mistakes >= state.maxMistakes) {
+              triggerGameOver();
+              return;
+            }
+          } else {
+            soundClick();
+          }
+
+          renderBoard();
+          checkGameCompletion();
+        }
+      }
+
+      function removePeerNotes(r, c, num) {
+        // row & col
+        for (let i = 0; i < 9; i++) {
+          state.notes[r][i].delete(num);
+          state.notes[i][c].delete(num);
+        }
+        // box
+        const br = Math.floor(r / 3) * 3;
+        const bc = Math.floor(c / 3) * 3;
+        for (let i = 0; i < 3; i++) {
+          for (let j = 0; j < 3; j++) {
+            state.notes[br + i][bc + j].delete(num);
+          }
+        }
+      }
+
+      // --- Erase Action ---
+      function eraseSelected() {
+        if (state.isPaused || state.isCompleted || !state.selectedCell) return;
+        const { r, c } = state.selectedCell;
+
+        if (state.initialPuzzle[r][c] !== 0) return;
+
+        const prevVal = state.currentBoard[r][c];
+        const prevNotes = new Set(state.notes[r][c]);
+
+        if (prevVal === 0 && prevNotes.size === 0) return;
+
+        state.moveHistory.push({
+          type: 'erase',
+          r,
+          c,
+          prevVal,
+          newVal: 0,
+          prevNotes
+        });
+
+        state.currentBoard[r][c] = 0;
+        state.notes[r][c].clear();
+        soundClick();
+        renderBoard();
+      }
+
+      // --- Undo Action ---
+      function undoMove() {
+        if (state.isPaused || state.isCompleted || state.moveHistory.length === 0) return;
+        const move = state.moveHistory.pop();
+        const { r, c } = move;
+
+        if (move.type === 'value' || move.type === 'erase') {
+          state.currentBoard[r][c] = move.prevVal;
+          state.notes[r][c] = new Set(move.prevNotes);
+        } else if (move.type === 'note') {
+          state.notes[r][c] = new Set(move.prevNotes);
+          state.currentBoard[r][c] = move.prevVal;
+        }
+
+        state.selectedCell = { r, c };
+        soundClick();
+        renderBoard();
+      }
+
+      // --- Hint Action ---
+      function giveHint() {
+        if (state.isPaused || state.isCompleted || state.hintsRemaining <= 0) return;
+
+        let target = state.selectedCell;
+
+        // If no empty cell is selected, pick an empty cell or an incorrect cell
+        if (!target || state.initialPuzzle[target.r][target.c] !== 0 || state.currentBoard[target.r][target.c] === state.solution[target.r][target.c]) {
+          const emptyCells = [];
+          for (let r = 0; r < 9; r++) {
+            for (let c = 0; c < 9; c++) {
+              if (state.initialPuzzle[r][c] === 0 && state.currentBoard[r][c] !== state.solution[r][c]) {
+                emptyCells.push({ r, c });
+              }
+            }
+          }
+          if (emptyCells.length === 0) return;
+          target = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        }
+
+        const { r, c } = target;
+        const correctVal = state.solution[r][c];
+
+        state.hintsRemaining--;
+        hintCount.textContent = state.hintsRemaining;
+        if (state.hintsRemaining === 0) {
+          hintBtn.classList.add('opacity-50');
+        }
+
+        state.moveHistory.push({
+          type: 'value',
+          r,
+          c,
+          prevVal: state.currentBoard[r][c],
+          newVal: correctVal,
+          prevNotes: new Set(state.notes[r][c])
+        });
+
+        // Set cell value and mark as fixed clue so user can't modify
+        state.currentBoard[r][c] = correctVal;
+        state.initialPuzzle[r][c] = correctVal;
+        state.notes[r][c].clear();
+        removePeerNotes(r, c, correctVal);
+
+        state.selectedCell = { r, c };
+        soundSuccess();
+        renderBoard();
+        checkGameCompletion();
+      }
+
+      // --- Pencil Mode Toggle ---
+      function togglePencilMode() {
+        state.isPencilMode = !state.isPencilMode;
+        if (state.isPencilMode) {
+          pencilStatus.textContent = 'ON';
+          pencilStatus.className = 'absolute top-1 right-2 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-blue-600 text-white uppercase';
+          pencilBtn.classList.add('ring-2', 'ring-blue-500', 'bg-blue-100', 'dark:bg-slate-700');
+        } else {
+          pencilStatus.textContent = 'OFF';
+          pencilStatus.className = 'absolute top-1 right-2 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-slate-300 dark:bg-slate-700 text-slate-600 dark:text-slate-300 uppercase';
+          pencilBtn.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-100', 'dark:bg-slate-700');
+        }
+        soundClick();
+      }
+
+      // --- Completion Check ---
+      function checkGameCompletion() {
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            if (state.currentBoard[r][c] !== state.solution[r][c]) {
+              return false;
+            }
+          }
+        }
+
+        // Board completely and correctly solved!
+        state.isCompleted = true;
+        stopTimer();
+        soundSuccess();
+
+        modalDiff.textContent = diffLabels[state.difficulty];
+        modalTime.textContent = formatTime(state.timerSeconds);
+        modalMistakes.textContent = state.mistakes;
+
+        launchConfetti();
+        victoryModal.classList.remove('hidden');
+        return true;
+      }
+
+      function launchConfetti() {
+        const container = document.getElementById('confettiContainer');
+        container.innerHTML = '';
+        const colors = ['#2563eb', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#3b82f6'];
+
+        for (let i = 0; i < 40; i++) {
+          const piece = document.createElement('div');
+          piece.className = 'confetti-piece';
+          piece.style.left = `${Math.random() * 100}%`;
+          piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          piece.style.animationDelay = `${Math.random() * 1.5}s`;
+          piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+          container.appendChild(piece);
+        }
+      }
+
+      function triggerGameOver() {
+        state.isCompleted = true;
+        stopTimer();
+        gameOverModal.classList.remove('hidden');
+      }
+
+      // --- New Game & Reset ---
+      function startNewGame(difficulty = state.difficulty) {
+        state.difficulty = difficulty;
+        currentDiffLabel.textContent = diffLabels[difficulty];
+
+        const { puzzle, solution } = SudokuEngine.generatePuzzle(difficulty);
+        state.initialPuzzle = puzzle;
+        state.solution = solution;
+        state.currentBoard = SudokuEngine.copyBoard(puzzle);
+        state.notes = Array(9).fill(0).map(() => Array(9).fill(0).map(() => new Set()));
+        state.selectedCell = null;
+        state.mistakes = 0;
+        state.timerSeconds = 0;
+        state.isPaused = false;
+        state.hintsRemaining = 3;
+        state.moveHistory = [];
+        state.isCompleted = false;
+
+        mistakeCount.textContent = '0';
+        hintCount.textContent = '3';
+        hintBtn.classList.remove('opacity-50');
+        timerText.textContent = '00:00';
+
+        victoryModal.classList.add('hidden');
+        gameOverModal.classList.add('hidden');
+        pauseOverlay.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+        playIcon.classList.add('hidden');
+
+        renderBoard();
+        startTimer();
+      }
+
+      function resetCurrentPuzzle() {
+        if (!confirm('현재 퍼즐을 초기화하시겠습니까? 입력한 모든 내용이 지워집니다.')) return;
+        state.currentBoard = SudokuEngine.copyBoard(state.initialPuzzle);
+        state.notes = Array(9).fill(0).map(() => Array(9).fill(0).map(() => new Set()));
+        state.moveHistory = [];
+        state.mistakes = 0;
+        state.timerSeconds = 0;
+        mistakeCount.textContent = '0';
+        timerText.textContent = '00:00';
+        state.selectedCell = null;
+        renderBoard();
+        startTimer();
+      }
+
+      // --- Keyboard Navigation & Shortcuts ---
+      window.addEventListener('keydown', (e) => {
+        // Modal open checks
+        if (!victoryModal.classList.contains('hidden') || !gameOverModal.classList.contains('hidden')) return;
+
+        // Number keys (1-9)
+        if (e.key >= '1' && e.key <= '9') {
+          onNumberInput(parseInt(e.key, 10));
+          return;
+        }
+
+        // Erase
+        if (e.key === 'Backspace' || e.key === 'Delete') {
+          eraseSelected();
+          return;
+        }
+
+        // Notes toggle (N or P)
+        if (e.key === 'n' || e.key === 'N' || e.key === 'p' || e.key === 'P') {
+          togglePencilMode();
+          return;
+        }
+
+        // Hint (H)
+        if (e.key === 'h' || e.key === 'H') {
+          giveHint();
+          return;
+        }
+
+        // Undo (Ctrl+Z or U)
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z') || e.key === 'u' || e.key === 'U') {
+          e.preventDefault();
+          undoMove();
+          return;
+        }
+
+        // Pause (Space)
+        if (e.key === ' ') {
+          e.preventDefault();
+          togglePause();
+          return;
+        }
+
+        // Arrow navigation
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+          e.preventDefault();
+          if (!state.selectedCell) {
+            state.selectedCell = { r: 4, c: 4 };
+          } else {
+            let { r, c } = state.selectedCell;
+            if (e.key === 'ArrowUp') r = (r - 1 + 9) % 9;
+            if (e.key === 'ArrowDown') r = (r + 1) % 9;
+            if (e.key === 'ArrowLeft') c = (c - 1 + 9) % 9;
+            if (e.key === 'ArrowRight') c = (c + 1) % 9;
+            state.selectedCell = { r, c };
+          }
+          soundClick();
+          renderBoard();
+        }
+      });
+
+      // --- Event Listeners Binding ---
+      pencilBtn.addEventListener('click', togglePencilMode);
+      undoBtn.addEventListener('click', undoMove);
+      eraseBtn.addEventListener('click', eraseSelected);
+      hintBtn.addEventListener('click', giveHint);
+      restartBtn.addEventListener('click', resetCurrentPuzzle);
+
+      // Difficulty dropdown
+      diffMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        diffMenu.classList.toggle('hidden');
+      });
+
+      document.addEventListener('click', () => {
+        diffMenu.classList.add('hidden');
+      });
+
+      diffMenu.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const diff = btn.dataset.diff;
+          diffMenu.classList.add('hidden');
+          startNewGame(diff);
+        });
+      });
+
+      newGameBtn.addEventListener('click', () => {
+        if (confirm('새 게임을 시작하시겠습니까? 현재 진행 상황은 저장되지 않습니다.')) {
+          startNewGame();
+        }
+      });
+
+      modalNewGameBtn.addEventListener('click', () => startNewGame());
+      modalCloseBtn.addEventListener('click', () => victoryModal.classList.add('hidden'));
+
+      gameOverRestartBtn.addEventListener('click', () => {
+        gameOverModal.classList.add('hidden');
+        resetCurrentPuzzle();
+      });
+
+      gameOverNewBtn.addEventListener('click', () => {
+        gameOverModal.classList.add('hidden');
+        startNewGame();
+      });
+
+      // Help Modal
+      helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
+      closeHelpBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
+      helpOkBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
+
+      // Close modal on outside click
+      [victoryModal, gameOverModal, helpModal].forEach(modal => {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) modal.classList.add('hidden');
+        });
+      });
+
+      // --- Startup ---
+      initBoardDOM();
+      initNumberPadDOM();
+      startNewGame('medium');
+
+    })();
+  </script>
+</body>
+</html>
