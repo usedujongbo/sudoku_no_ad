@@ -42,45 +42,28 @@
     }
   </script>
   <style>
-    /* Custom Sudoku Grid & Styling */
-    :root {
-      --cell-size: min(10.5vw, 56px);
-      --thick-border: 2.5px solid;
-      --thin-border: 1px solid;
-    }
-
-    /* Prevent accidental zoom on double taps in mobile */
+    /* Prevent accidental zoom and text selection */
     * {
       touch-action: manipulation;
       user-select: none;
       -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    input, button {
-      user-select: auto;
-      -webkit-user-select: auto;
-    }
-
+    /* Sudoku Grid */
     .sudoku-grid {
       display: grid;
       grid-template-columns: repeat(9, 1fr);
       grid-template-rows: repeat(9, 1fr);
       width: 100%;
       height: 100%;
-      max-width: 504px;
-      aspect-ratio: 1 / 1;
-      background-color: #ffffff;
+      background-color: #08141b;
       box-sizing: border-box;
-    }
-    .dark .sudoku-grid {
-      background-color: #0f172a;
     }
 
     #boardWrapper {
-      border: 3.5px solid #1e293b !important;
-    }
-    .dark #boardWrapper {
-      border-color: #94a3b8 !important;
+      border: 3.5px solid #3c6e8c !important;
+      background-color: #08141b;
     }
 
     .sudoku-cell {
@@ -88,38 +71,28 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(1.2rem, 4.5vw, 1.9rem);
+      font-size: clamp(1.15rem, 4.8vw, 1.85rem);
       font-weight: 500;
       cursor: pointer;
       box-sizing: border-box;
-      transition: background-color 0.12s ease, transform 0.08s ease;
-      border-right: 1px solid #cbd5e1;
-      border-bottom: 1px solid #cbd5e1;
+      transition: background-color 0.1s ease;
+      border-right: 1px solid #162f3c;
+      border-bottom: 1px solid #162f3c;
       border-top: none;
       border-left: none;
-    }
-    .dark .sudoku-cell {
-      border-right-color: #334155;
-      border-bottom-color: #334155;
+      background-color: #08141b;
+      color: #e2e8f0;
     }
 
-    /* 3x3 Box Thick Borders (3줄마다 굵은 구분선) */
+    /* 3x3 Box Thick Borders */
     .sudoku-cell[data-col="2"],
     .sudoku-cell[data-col="5"] {
-      border-right: 3.5px solid #1e293b !important;
-    }
-    .dark .sudoku-cell[data-col="2"],
-    .dark .sudoku-cell[data-col="5"] {
-      border-right: 3.5px solid #94a3b8 !important;
+      border-right: 3.5px solid #3c6e8c !important;
     }
 
     .sudoku-cell[data-row="2"],
     .sudoku-cell[data-row="5"] {
-      border-bottom: 3.5px solid #1e293b !important;
-    }
-    .dark .sudoku-cell[data-row="2"],
-    .dark .sudoku-cell[data-row="5"] {
-      border-bottom: 3.5px solid #94a3b8 !important;
+      border-bottom: 3.5px solid #3c6e8c !important;
     }
 
     /* Outer right and bottom edges */
@@ -128,6 +101,92 @@
     }
     .sudoku-cell[data-row="8"] {
       border-bottom: none !important;
+    }
+
+    /* Cell states */
+    .sudoku-cell.cell-default {
+      background-color: #08141b;
+    }
+    .sudoku-cell.cell-related {
+      background-color: #122732;
+    }
+    .sudoku-cell.cell-match {
+      background-color: #1d4436;
+    }
+    .sudoku-cell.cell-selected {
+      background-color: #2d6b49 !important;
+      box-shadow: inset 0 0 0 2px #34d399 !important;
+      z-index: 10;
+    }
+    .sudoku-cell.cell-wrong {
+      background-color: #450a0a !important;
+      box-shadow: inset 0 0 0 2px #ef4444 !important;
+      z-index: 10;
+    }
+
+    /* Numbers in cells */
+    .sudoku-cell .num-clue {
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .sudoku-cell .num-user {
+      font-weight: 600;
+      color: #6ee7b7;
+    }
+    .sudoku-cell .num-wrong {
+      font-weight: 700;
+      color: #f87171 !important;
+    }
+
+    /* Light Mode Overrides */
+    .light-theme {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    .light-theme .sudoku-grid,
+    .light-theme #boardWrapper {
+      background-color: #ffffff !important;
+      border-color: #1e293b !important;
+    }
+    .light-theme .sudoku-cell {
+      background-color: #ffffff;
+      border-right-color: #cbd5e1;
+      border-bottom-color: #cbd5e1;
+      color: #0f172a;
+    }
+    .light-theme .sudoku-cell[data-col="2"],
+    .light-theme .sudoku-cell[data-col="5"] {
+      border-right-color: #1e293b !important;
+    }
+    .light-theme .sudoku-cell[data-row="2"],
+    .light-theme .sudoku-cell[data-row="5"] {
+      border-bottom-color: #1e293b !important;
+    }
+    .light-theme .sudoku-cell.cell-default {
+      background-color: #ffffff;
+    }
+    .light-theme .sudoku-cell.cell-related {
+      background-color: #f1f5f9;
+    }
+    .light-theme .sudoku-cell.cell-match {
+      background-color: #d1fae5;
+    }
+    .light-theme .sudoku-cell.cell-selected {
+      background-color: #a7f3d0 !important;
+      box-shadow: inset 0 0 0 2px #059669 !important;
+    }
+    .light-theme .sudoku-cell.cell-wrong {
+      background-color: #fee2e2 !important;
+      box-shadow: inset 0 0 0 2px #dc2626 !important;
+    }
+    .light-theme .sudoku-cell .num-clue {
+      color: #0f172a;
+    }
+    .light-theme .sudoku-cell .num-user {
+      color: #047857;
+    }
+    .light-theme .sudoku-cell .num-wrong {
+      color: #dc2626 !important;
     }
 
     /* Pencil notes 3x3 grid inside cell */
@@ -147,20 +206,10 @@
       font-size: clamp(0.55rem, 1.8vw, 0.75rem);
       font-weight: 600;
       line-height: 1;
+      color: #7ca2b8;
+    }
+    .light-theme .pencil-num {
       color: #64748b;
-    }
-    .dark .pencil-num {
-      color: #94a3b8;
-    }
-
-    /* Error animation */
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20%, 60% { transform: translateX(-4px); }
-      40%, 80% { transform: translateX(4px); }
-    }
-    .cell-shake {
-      animation: shake 0.35s cubic-bezier(.36,.07,.19,.97) both;
     }
 
     /* Confetti animation */
@@ -175,116 +224,98 @@
       opacity: 0.9;
       animation: confetti-fall 3s ease-in-out forwards;
     }
-
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 3px;
-    }
-    .dark ::-webkit-scrollbar-thumb {
-      background: #475569;
-    }
   </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+<body id="appBody" class="bg-[#071318] text-slate-100 h-screen h-[100dvh] max-h-[100dvh] overflow-hidden flex flex-col font-sans select-none antialiased">
 
-  <!-- Main Container -->
-  <div class="flex-1 flex flex-col max-w-xl mx-auto w-full px-3 py-2 sm:py-4">
+  <!-- Main Container: Guaranteed to fit mobile viewport without scrolling -->
+  <main class="flex-1 w-full max-w-[420px] mx-auto h-full flex flex-col justify-between items-center px-3 py-1.5 sm:py-2 overflow-hidden">
     
-    <!-- Top Bar: Logo, Difficulty, Dark Mode, New Game -->
-    <header class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+    <!-- Top Header & Status Section -->
+    <header class="w-full flex flex-col gap-1 flex-shrink-0">
+      <!-- Nav Row: Back / Title & Difficulty / Settings -->
+      <div class="flex items-center justify-between w-full pt-0.5">
+        <!-- Back Button -->
+        <button id="backBtn" aria-label="새 게임" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-white hover:bg-[#1a3444] transition active:scale-95 shadow-sm">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16M9 4v16M15 4v16"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
           </svg>
+        </button>
+
+        <!-- Center: Difficulty Selector (Clean, single-line) -->
+        <div class="relative flex flex-col items-center">
+          <button id="diffMenuBtn" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#132530] border border-[#1e3847] text-sm font-bold text-white hover:text-emerald-400 hover:border-emerald-500/40 transition active:scale-95 shadow-sm" aria-label="난이도 선택">
+            <span class="text-[#7c9cae] font-normal text-xs">난이도:</span>
+            <span id="currentDiffLabel">보통</span>
+            <svg class="w-3.5 h-3.5 text-[#7c9cae]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+
+          <!-- Difficulty Dropdown Menu -->
+          <div id="diffMenu" class="hidden absolute top-full mt-1.5 w-36 bg-[#0e212b] border border-[#1e3847] rounded-xl shadow-2xl z-30 py-1 text-center">
+            <button data-diff="easy" class="w-full px-3 py-1.5 text-xs hover:bg-[#173342] font-medium text-slate-200">쉬움 (Easy)</button>
+            <button data-diff="medium" class="w-full px-3 py-1.5 text-xs hover:bg-[#173342] font-medium text-slate-200">보통 (Medium)</button>
+            <button data-diff="hard" class="w-full px-3 py-1.5 text-xs hover:bg-[#173342] font-medium text-slate-200">어려움 (Hard)</button>
+            <button data-diff="expert" class="w-full px-3 py-1.5 text-xs hover:bg-[#173342] font-medium text-slate-200">전문가 (Expert)</button>
+          </div>
         </div>
-        <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">스도쿠</h1>
-        <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-300 font-medium">광고 없음</span>
+
+        <!-- Settings Gear Button -->
+        <button id="settingsBtn" aria-label="설정" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-white hover:bg-[#1a3444] transition active:scale-95 shadow-sm">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </button>
       </div>
 
-      <div class="flex items-center gap-1 sm:gap-2">
-        <!-- Dark Mode Toggle -->
-        <button id="themeToggleBtn" aria-label="테마 전환" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
-          <svg id="moonIcon" class="w-5 h-5 hidden dark:block text-amber-300" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
+      <!-- Status Pills: Mistakes & Timer -->
+      <div class="flex items-center justify-center gap-3 w-full py-0.5">
+        <!-- Mistakes Pill -->
+        <div class="flex items-center gap-1.5 bg-[#132530] border border-[#1e3847] px-3.5 py-1 rounded-full text-xs text-white shadow-sm">
+          <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
           </svg>
-          <svg id="sunIcon" class="w-5 h-5 block dark:hidden text-slate-700" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-          </svg>
-        </button>
+          <span class="text-[#7c9cae]">실수</span>
+          <span id="mistakeCount" class="font-bold text-red-400">0</span>
+          <span class="text-slate-500">/ 3</span>
+        </div>
 
-        <!-- New Game Button -->
-        <button id="newGameBtn" class="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold shadow-sm transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+        <!-- Timer Pill -->
+        <div class="flex items-center gap-1.5 bg-[#132530] border border-[#1e3847] px-3 py-1 rounded-full text-xs text-white shadow-sm">
+          <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" stroke-width="2"></circle>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path>
           </svg>
-          <span>새 게임</span>
-        </button>
+          <span id="timerText" class="font-mono font-semibold tracking-wider">00:00</span>
+          <button id="pauseBtn" aria-label="타이머 일시정지" class="p-0.5 hover:text-emerald-400 transition ml-0.5">
+            <svg id="pauseIcon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 9v6m4-6v6"></path>
+            </svg>
+            <svg id="playIcon" class="w-3.5 h-3.5 hidden text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"></path>
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
-    <!-- Game Status Header: Difficulty Selector, Mistakes, Timer -->
-    <div class="flex items-center justify-between py-2 text-sm">
-      <!-- Difficulty Tabs -->
-      <div class="relative">
-        <button id="diffMenuBtn" class="flex items-center gap-1.5 font-medium px-2.5 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition">
-          <span id="currentDiffLabel">보통</span>
-          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-
-        <!-- Difficulty Dropdown Menu -->
-        <div id="diffMenu" class="hidden absolute left-0 top-full mt-1 w-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg z-30 py-1">
-          <button data-diff="easy" class="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 dark:hover:bg-slate-800 font-medium text-slate-700 dark:text-slate-300">쉬움 (Easy)</button>
-          <button data-diff="medium" class="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 dark:hover:bg-slate-800 font-medium text-slate-700 dark:text-slate-300">보통 (Medium)</button>
-          <button data-diff="hard" class="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 dark:hover:bg-slate-800 font-medium text-slate-700 dark:text-slate-300">어려움 (Hard)</button>
-          <button data-diff="expert" class="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 dark:hover:bg-slate-800 font-medium text-slate-700 dark:text-slate-300">전문가 (Expert)</button>
-        </div>
-      </div>
-
-      <!-- Mistakes Display -->
-      <div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 font-medium">
-        <span>오류:</span>
-        <span id="mistakeCount" class="font-bold text-red-500">0</span>
-        <span class="text-xs">/ 3</span>
-      </div>
-
-      <!-- Timer & Pause -->
-      <div class="flex items-center gap-1.5 bg-slate-200/80 dark:bg-slate-800 px-2.5 py-1 rounded-lg text-slate-700 dark:text-slate-300">
-        <span id="timerText" class="font-mono font-semibold tracking-wider">00:00</span>
-        <button id="pauseBtn" aria-label="타이머 일시정지" class="p-1 hover:text-blue-600 dark:hover:text-blue-400 transition">
-          <svg id="pauseIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 9v6m4-6v6"></path>
-          </svg>
-          <svg id="playIcon" class="w-4 h-4 hidden text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Sudoku Board Container -->
-    <div class="relative w-full flex items-center justify-center my-auto py-1">
-      <div id="boardWrapper" class="relative w-full max-w-[480px] aspect-square rounded-xl overflow-hidden shadow-lg bg-white dark:bg-slate-900">
+    <!-- Center: Sudoku Board (Responsive square, maximized available height) -->
+    <div class="relative w-full flex-1 min-h-0 flex items-center justify-center py-0.5">
+      <div id="boardWrapper" class="relative w-full max-w-[min(100%,min(410px,calc(100dvh-230px)))] aspect-square rounded-xl overflow-hidden shadow-2xl">
         <!-- 9x9 Grid -->
         <div id="sudokuBoard" class="sudoku-grid h-full select-none" role="grid" aria-label="스도쿠 판"></div>
 
         <!-- Pause Overlay -->
-        <div id="pauseOverlay" class="hidden absolute inset-0 bg-slate-900/85 backdrop-blur-sm z-20 flex flex-col items-center justify-center text-white gap-3 p-4 text-center">
-          <div class="p-4 bg-blue-600/20 rounded-full border border-blue-500/30">
-            <svg class="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div id="pauseOverlay" class="hidden absolute inset-0 bg-[#071318]/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center text-white gap-3 p-4 text-center">
+          <div class="p-4 bg-emerald-600/20 rounded-full border border-emerald-500/30">
+            <svg class="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
           </div>
-          <h2 class="text-xl font-bold">게임이 일시정지되었습니다</h2>
-          <p class="text-sm text-slate-300 max-w-xs">집중할 준비가 되셨을 때 재개 버튼을 눌러주세요.</p>
-          <button id="resumeBtn" class="mt-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold flex items-center gap-2 shadow-lg transition">
+          <h2 class="text-lg font-bold">게임이 일시정지되었습니다</h2>
+          <button id="resumeBtn" class="mt-1 px-6 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-semibold flex items-center gap-2 shadow-lg transition">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z"></path>
             </svg>
@@ -294,67 +325,115 @@
       </div>
     </div>
 
-    <!-- Action Toolbar (Undo, Erase, Notes, Hint) -->
-    <div class="grid grid-cols-4 gap-2 my-2 max-w-[480px] w-full mx-auto">
-      <!-- Undo -->
-      <button id="undoBtn" class="flex flex-col items-center justify-center p-2 rounded-xl bg-slate-200/70 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition active:scale-95">
-        <svg class="w-5 h-5 mb-0.5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a5 5 0 015 5v2m0 0l-4-4m4 4l4-4M3 10l4-4M3 10l4 4"></path>
-        </svg>
-        <span class="text-xs font-medium">실행 취소</span>
-      </button>
-
-      <!-- Erase -->
-      <button id="eraseBtn" class="flex flex-col items-center justify-center p-2 rounded-xl bg-slate-200/70 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition active:scale-95">
-        <svg class="w-5 h-5 mb-0.5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-        </svg>
-        <span class="text-xs font-medium">지우기</span>
-      </button>
-
-      <!-- Pencil / Notes Mode -->
-      <button id="pencilBtn" class="relative flex flex-col items-center justify-center p-2 rounded-xl bg-slate-200/70 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition active:scale-95">
-        <span id="pencilStatus" class="absolute top-1 right-2 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-slate-300 dark:bg-slate-700 text-slate-600 dark:text-slate-300 uppercase">OFF</span>
-        <svg class="w-5 h-5 mb-0.5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-        </svg>
-        <span class="text-xs font-medium">메모</span>
-      </button>
-
-      <!-- Hint -->
-      <button id="hintBtn" class="relative flex flex-col items-center justify-center p-2 rounded-xl bg-slate-200/70 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition active:scale-95">
-        <span id="hintCount" class="absolute top-1 right-2 text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-500 text-white">3</span>
-        <svg class="w-5 h-5 mb-0.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-        </svg>
-        <span class="text-xs font-medium">힌트</span>
-      </button>
-    </div>
-
-    <!-- Number Pad (1-9) -->
-    <div class="w-full max-w-[480px] mx-auto pb-1">
-      <div id="numberPad" class="grid grid-cols-9 gap-1 sm:gap-1.5">
-        <!-- Generated via JS for 1-9 with remaining count badge -->
+    <!-- Keypad: 5 Columns x 2 Rows (1-9 + Pencil) -->
+    <div class="w-full flex-shrink-0 pt-0.5 pb-1">
+      <div id="numberPad" class="grid grid-cols-5 gap-1.5 sm:gap-2 w-full max-w-[410px] mx-auto">
+        <!-- Generated via JS: Buttons 1 to 9 + Pencil button as #10 -->
       </div>
     </div>
 
-    <!-- Bottom utility buttons: Restart & How to Play -->
-    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-800 max-w-[480px] w-full mx-auto">
-      <button id="restartBtn" class="hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1 transition">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-        </svg>
-        <span>퍼즐 초기화</span>
-      </button>
+    <!-- Bottom Action Bar: Undo, Erase, Hint, Help -->
+    <div class="w-full flex-shrink-0 pb-1">
+      <div class="flex items-center justify-around w-full max-w-[390px] mx-auto px-2">
+        <!-- Undo -->
+        <button id="undoBtn" class="flex flex-col items-center gap-1 group" aria-label="실행 취소">
+          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-slate-200 group-hover:bg-[#1a3444] transition active:scale-95 shadow-md">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h10a5 5 0 015 5v2m0 0l-4-4m4 4l4-4M3 10l4-4M3 10l4 4"></path>
+            </svg>
+          </div>
+          <span class="text-[10px] sm:text-[11px] font-medium text-[#7c9cae]">실행 취소</span>
+        </button>
 
-      <button id="helpBtn" class="hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1 transition">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <span>단축키 및 도움말</span>
-      </button>
+        <!-- Erase -->
+        <button id="eraseBtn" class="flex flex-col items-center gap-1 group" aria-label="지우기">
+          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-slate-200 group-hover:bg-[#1a3444] transition active:scale-95 shadow-md">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+          </div>
+          <span class="text-[10px] sm:text-[11px] font-medium text-[#7c9cae]">지우기</span>
+        </button>
+
+        <!-- Hint -->
+        <button id="hintBtn" class="flex flex-col items-center gap-1 group relative" aria-label="힌트">
+          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-amber-400 group-hover:bg-[#1a3444] transition active:scale-95 shadow-md relative">
+            <span id="hintCount" class="absolute -top-1 -right-1 text-[10px] font-bold w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center">3</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+          </div>
+          <span class="text-[10px] sm:text-[11px] font-medium text-[#7c9cae]">힌트</span>
+        </button>
+
+        <!-- Help -->
+        <button id="helpBtn" class="flex flex-col items-center gap-1 group" aria-label="도움말">
+          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-slate-200 group-hover:bg-[#1a3444] transition active:scale-95 shadow-md">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <span class="text-[10px] sm:text-[11px] font-medium text-[#7c9cae]">도움말</span>
+        </button>
+      </div>
     </div>
 
+  </main>
+
+  <!-- Settings Modal (Gear Icon) -->
+  <div id="settingsModal" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-[#0c1c24] border border-[#1e3847] rounded-3xl p-5 max-w-xs w-full shadow-2xl text-slate-100">
+      <div class="flex items-center justify-between pb-3 border-b border-[#1e3847] mb-4">
+        <h3 class="text-base font-bold">게임 설정</h3>
+        <button id="closeSettingsBtn" class="p-1 text-slate-400 hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Difficulty Selection -->
+      <div class="mb-4">
+        <label class="text-xs text-[#7c9cae] font-medium mb-1.5 block">난이도 선택</label>
+        <div class="grid grid-cols-2 gap-2">
+          <button data-diff-opt="easy" class="py-2 px-3 rounded-xl bg-[#132530] border border-[#1e3847] hover:border-emerald-500 text-xs font-semibold">쉬움</button>
+          <button data-diff-opt="medium" class="py-2 px-3 rounded-xl bg-[#132530] border border-[#1e3847] hover:border-emerald-500 text-xs font-semibold">보통</button>
+          <button data-diff-opt="hard" class="py-2 px-3 rounded-xl bg-[#132530] border border-[#1e3847] hover:border-emerald-500 text-xs font-semibold">어려움</button>
+          <button data-diff-opt="expert" class="py-2 px-3 rounded-xl bg-[#132530] border border-[#1e3847] hover:border-emerald-500 text-xs font-semibold">전문가</button>
+        </div>
+      </div>
+
+      <!-- Actions: Reset & Theme Toggle -->
+      <div class="flex flex-col gap-2 pt-2 border-t border-[#1e3847]">
+        <button id="restartBtn" class="w-full py-2.5 rounded-xl bg-[#132530] hover:bg-[#1a3444] text-xs font-semibold flex items-center justify-center gap-2 text-slate-200">
+          <svg class="w-4 h-4 text-[#7c9cae]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          <span>퍼즐 초기화</span>
+        </button>
+
+        <button id="newGameBtn" class="w-full py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-xs font-semibold text-white flex items-center justify-center gap-2 shadow-md">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+          </svg>
+          <span>새 게임 시작</span>
+        </button>
+
+        <button id="themeToggleBtn" class="w-full py-2.5 rounded-xl bg-[#132530] hover:bg-[#1a3444] text-xs font-semibold flex items-center justify-center gap-2 text-slate-300">
+          <span id="themeLabel">다크 모드</span>
+        </button>
+
+        <button id="hapticToggleBtn" class="w-full py-2.5 rounded-xl bg-[#132530] hover:bg-[#1a3444] text-xs font-semibold flex items-center justify-between px-3 text-slate-300">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-[#7c9cae]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2zM5 9a14.05 14.05 0 000 6M19 9a14.05 14.05 0 010 6M2 11a18.06 18.06 0 000 2M22 11a18.06 18.06 0 010 2"></path>
+            </svg>
+            <span>실수 시 햅틱 진동</span>
+          </div>
+          <span id="hapticLabel" class="text-xs font-bold text-emerald-400">켜짐</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Victory Celebration Modal -->
@@ -471,22 +550,8 @@
     (function () {
       'use strict';
 
-      // --- Theme Management ---
+      // --- Root Element ---
       const htmlEl = document.documentElement;
-      const themeToggleBtn = document.getElementById('themeToggleBtn');
-      
-      const savedTheme = localStorage.getItem('sudoku_theme');
-      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        htmlEl.classList.add('dark');
-      } else {
-        htmlEl.classList.remove('dark');
-      }
-
-      themeToggleBtn.addEventListener('click', () => {
-        htmlEl.classList.toggle('dark');
-        const isDark = htmlEl.classList.contains('dark');
-        localStorage.setItem('sudoku_theme', isDark ? 'dark' : 'light');
-      });
 
       // --- Sudoku Engine & Solver / Generator ---
       // A reliable, fast generator with isomorphic transformation ensuring 100% unique, valid puzzles
@@ -733,6 +798,7 @@
       };
 
       // --- DOM Elements ---
+      const appBody = document.getElementById('appBody');
       const boardEl = document.getElementById('sudokuBoard');
       const timerText = document.getElementById('timerText');
       const pauseBtn = document.getElementById('pauseBtn');
@@ -745,8 +811,12 @@
       const diffMenuBtn = document.getElementById('diffMenuBtn');
       const diffMenu = document.getElementById('diffMenu');
       const currentDiffLabel = document.getElementById('currentDiffLabel');
-      const pencilBtn = document.getElementById('pencilBtn');
-      const pencilStatus = document.getElementById('pencilStatus');
+      const backBtn = document.getElementById('backBtn');
+      const settingsBtn = document.getElementById('settingsBtn');
+      const settingsModal = document.getElementById('settingsModal');
+      const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      const themeLabel = document.getElementById('themeLabel');
       const undoBtn = document.getElementById('undoBtn');
       const eraseBtn = document.getElementById('eraseBtn');
       const hintBtn = document.getElementById('hintBtn');
@@ -765,7 +835,8 @@
       const helpBtn = document.getElementById('helpBtn');
       const helpModal = document.getElementById('helpModal');
       const closeHelpBtn = document.getElementById('closeHelpBtn');
-      const helpOkBtn = document.getElementById('helpOkBtn');
+
+      let pencilPadBtn = null;
 
       const diffLabels = {
         easy: '쉬움',
@@ -806,6 +877,32 @@
         playTone(523.25, 'sine', 0.1);
         setTimeout(() => playTone(659.25, 'sine', 0.1), 100);
         setTimeout(() => playTone(783.99, 'sine', 0.2), 200);
+      }
+
+      // --- Haptic Feedback (Vibration API) ---
+      let isHapticEnabled = localStorage.getItem('sudoku_haptic') !== 'false';
+
+      function triggerMistakeHaptic() {
+        if (!isHapticEnabled) return;
+        try {
+          if ('vibrate' in navigator && typeof navigator.vibrate === 'function') {
+            // Tactile double-pulse pattern for a mistake
+            navigator.vibrate([60, 50, 100]);
+          }
+        } catch (e) {
+          // Fallback gracefully if blocked or unsupported
+        }
+      }
+
+      function triggerGameOverHaptic() {
+        if (!isHapticEnabled) return;
+        try {
+          if ('vibrate' in navigator && typeof navigator.vibrate === 'function') {
+            navigator.vibrate([100, 70, 200]);
+          }
+        } catch (e) {
+          // Fallback gracefully
+        }
       }
 
       // --- Timer Control ---
@@ -860,7 +957,7 @@
             cell.id = `cell-${r}-${c}`;
             cell.dataset.row = r;
             cell.dataset.col = c;
-            cell.className = 'sudoku-cell text-slate-800 dark:text-slate-100';
+            cell.className = 'sudoku-cell cell-default';
             
             cell.addEventListener('click', () => onCellClicked(r, c));
             boardEl.appendChild(cell);
@@ -870,18 +967,30 @@
 
       function initNumberPadDOM() {
         numberPadEl.innerHTML = '';
+        
+        // 1 to 9 buttons
         for (let num = 1; num <= 9; num++) {
           const btn = document.createElement('button');
           btn.id = `pad-btn-${num}`;
           btn.dataset.number = num;
-          btn.className = 'relative flex flex-col items-center justify-center py-2 sm:py-3 rounded-xl bg-blue-50 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-slate-700 text-blue-900 dark:text-blue-100 font-bold transition active:scale-95 border border-blue-100 dark:border-slate-700 shadow-sm';
-          btn.innerHTML = `
-            <span class="text-base sm:text-lg leading-none">${num}</span>
-            <span class="text-[9px] text-slate-400 dark:text-slate-400 mt-1 font-normal count-badge">9</span>
-          `;
+          btn.className = 'h-11 sm:h-12 rounded-lg bg-[#2e7d32] hover:bg-[#388e3c] border-b-2 border-[#1b5e20] text-white font-bold text-lg sm:text-xl active:translate-y-0.5 shadow-md flex items-center justify-center transition-transform';
+          btn.textContent = num;
           btn.addEventListener('click', () => onNumberInput(num));
           numberPadEl.appendChild(btn);
         }
+
+        // 10th button: Pencil Mode toggle (as shown in screenshot)
+        pencilPadBtn = document.createElement('button');
+        pencilPadBtn.id = 'pad-btn-pencil';
+        pencilPadBtn.className = 'h-11 sm:h-12 rounded-lg bg-[#1e502c] hover:bg-[#256337] border-b-2 border-[#12361b] text-white text-base active:translate-y-0.5 shadow-md flex items-center justify-center transition-all';
+        pencilPadBtn.innerHTML = `
+          <svg class="w-5 h-5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+          </svg>
+        `;
+        pencilPadBtn.title = '메모 모드 (N / P)';
+        pencilPadBtn.addEventListener('click', togglePencilMode);
+        numberPadEl.appendChild(pencilPadBtn);
       }
 
       function updatePadRemainingCounts() {
@@ -902,15 +1011,11 @@
         for (let num = 1; num <= 9; num++) {
           const btn = document.getElementById(`pad-btn-${num}`);
           if (!btn) continue;
-          const badge = btn.querySelector('.count-badge');
           const remaining = 9 - counts[num];
-          if (badge) {
-            badge.textContent = remaining > 0 ? remaining : '✓';
-          }
           if (remaining <= 0) {
-            btn.classList.add('opacity-40', 'pointer-events-none');
+            btn.classList.add('opacity-30');
           } else {
-            btn.classList.remove('opacity-40', 'pointer-events-none');
+            btn.classList.remove('opacity-30');
           }
         }
       }
@@ -918,57 +1023,53 @@
       function renderBoard() {
         const sel = state.selectedCell;
         const selVal = sel ? state.currentBoard[sel.r][sel.c] : 0;
-        const isDark = htmlEl.classList.contains('dark');
 
         for (let r = 0; r < 9; r++) {
           for (let c = 0; c < 9; c++) {
             const cell = document.getElementById(`cell-${r}-${c}`);
+            if (!cell) continue;
             const val = state.currentBoard[r][c];
             const isInitial = state.initialPuzzle[r][c] !== 0;
             const notes = state.notes[r][c];
 
-            // Reset classes
+            // Reset base classes
             cell.className = 'sudoku-cell';
 
-            // Check if cell is wrong (user-entered number that conflicts or does not match solution)
+            // Check if cell is wrong
             const hasConflict = isCellInConflict(r, c);
             const isWrong = !isInitial && val > 0 && (hasConflict || (state.solution && val !== state.solution[r][c]));
 
-            // Determine Background Color / Highlights
+            // Determine Highlights
             const isSelected = sel && sel.r === r && sel.c === c;
             const isSameRowColBox = sel && (sel.r === r || sel.c === c || (Math.floor(sel.r / 3) === Math.floor(r / 3) && Math.floor(sel.c / 3) === Math.floor(c / 3)));
             const isSameNumber = selVal > 0 && val === selVal;
 
             if (isWrong) {
-              if (isSelected) {
-                cell.classList.add('bg-red-100', 'dark:bg-red-950/80', 'ring-2', 'ring-red-500', 'ring-inset', 'z-10');
-              } else {
-                cell.classList.add('bg-red-50', 'dark:bg-red-950/50');
-              }
+              cell.classList.add('cell-wrong');
             } else if (isSelected) {
-              cell.classList.add('bg-blue-200', 'dark:bg-blue-900/70', 'ring-2', 'ring-blue-500', 'ring-inset', 'z-10');
-            } else if (isInitial && hasConflict) {
-              cell.classList.add('bg-red-50', 'dark:bg-red-950/40');
+              cell.classList.add('cell-selected');
             } else if (isSameNumber) {
-              cell.classList.add('bg-blue-100/90', 'dark:bg-blue-950/60');
+              cell.classList.add('cell-match');
             } else if (isSameRowColBox) {
-              cell.classList.add('bg-slate-100', 'dark:bg-slate-800/50');
+              cell.classList.add('cell-related');
             } else {
-              cell.classList.add('bg-white', 'dark:bg-slate-900');
+              cell.classList.add('cell-default');
             }
 
-            // Cell Value / Notes Rendering
+            // Cell Value or Notes Rendering
             if (val > 0) {
-              cell.innerHTML = `<span>${val}</span>`;
+              const span = document.createElement('span');
+              span.textContent = val;
               if (isInitial) {
-                cell.classList.add('font-bold', 'text-slate-900', 'dark:text-white');
+                span.className = 'num-clue';
               } else if (isWrong) {
-                cell.classList.add('font-bold', 'text-red-600', 'dark:text-red-400');
+                span.className = 'num-wrong';
               } else {
-                cell.classList.add('font-semibold', 'text-blue-600', 'dark:text-blue-400');
+                span.className = 'num-user';
               }
+              cell.innerHTML = '';
+              cell.appendChild(span);
             } else if (notes.size > 0) {
-              // Render 3x3 pencil notes
               let noteHtml = '<div class="pencil-grid">';
               for (let n = 1; n <= 9; n++) {
                 noteHtml += `<span class="pencil-num">${notes.has(n) ? n : ''}</span>`;
@@ -1078,6 +1179,7 @@
             state.mistakes++;
             mistakeCount.textContent = state.mistakes;
             soundError();
+            triggerMistakeHaptic();
 
             const cellEl = document.getElementById(`cell-${r}-${c}`);
             cellEl.classList.add('cell-shake');
@@ -1211,14 +1313,14 @@
       // --- Pencil Mode Toggle ---
       function togglePencilMode() {
         state.isPencilMode = !state.isPencilMode;
-        if (state.isPencilMode) {
-          pencilStatus.textContent = 'ON';
-          pencilStatus.className = 'absolute top-1 right-2 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-blue-600 text-white uppercase';
-          pencilBtn.classList.add('ring-2', 'ring-blue-500', 'bg-blue-100', 'dark:bg-slate-700');
-        } else {
-          pencilStatus.textContent = 'OFF';
-          pencilStatus.className = 'absolute top-1 right-2 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-slate-300 dark:bg-slate-700 text-slate-600 dark:text-slate-300 uppercase';
-          pencilBtn.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-100', 'dark:bg-slate-700');
+        if (pencilPadBtn) {
+          if (state.isPencilMode) {
+            pencilPadBtn.classList.remove('bg-[#1e502c]', 'hover:bg-[#256337]', 'border-[#12361b]');
+            pencilPadBtn.classList.add('bg-amber-600', 'hover:bg-amber-500', 'border-amber-800', 'ring-2', 'ring-amber-300');
+          } else {
+            pencilPadBtn.classList.remove('bg-amber-600', 'hover:bg-amber-500', 'border-amber-800', 'ring-2', 'ring-amber-300');
+            pencilPadBtn.classList.add('bg-[#1e502c]', 'hover:bg-[#256337]', 'border-[#12361b]');
+          }
         }
         soundClick();
       }
@@ -1266,13 +1368,21 @@
       function triggerGameOver() {
         state.isCompleted = true;
         stopTimer();
+        triggerGameOverHaptic();
         gameOverModal.classList.remove('hidden');
+      }
+
+      function updateHeaderTitles() {
+        const diff = diffLabels[state.difficulty] || '보통';
+        if (currentDiffLabel) {
+          currentDiffLabel.textContent = diff;
+        }
       }
 
       // --- New Game & Reset ---
       function startNewGame(difficulty = state.difficulty) {
         state.difficulty = difficulty;
-        currentDiffLabel.textContent = diffLabels[difficulty];
+        updateHeaderTitles();
 
         const { puzzle, solution } = SudokuEngine.generatePuzzle(difficulty);
         state.initialPuzzle = puzzle;
@@ -1286,6 +1396,12 @@
         state.hintsRemaining = 3;
         state.moveHistory = [];
         state.isCompleted = false;
+        state.isPencilMode = false;
+
+        if (pencilPadBtn) {
+          pencilPadBtn.classList.remove('bg-amber-600', 'hover:bg-amber-500', 'border-amber-800', 'ring-2', 'ring-amber-300');
+          pencilPadBtn.classList.add('bg-[#1e502c]', 'hover:bg-[#256337]', 'border-[#12361b]');
+        }
 
         mistakeCount.textContent = '0';
         hintCount.textContent = '3';
@@ -1378,13 +1494,93 @@
       });
 
       // --- Event Listeners Binding ---
-      pencilBtn.addEventListener('click', togglePencilMode);
       undoBtn.addEventListener('click', undoMove);
       eraseBtn.addEventListener('click', eraseSelected);
       hintBtn.addEventListener('click', giveHint);
-      restartBtn.addEventListener('click', resetCurrentPuzzle);
+      restartBtn.addEventListener('click', () => {
+        if (settingsModal) settingsModal.classList.add('hidden');
+        resetCurrentPuzzle();
+      });
 
-      // Difficulty dropdown
+      // Back button
+      backBtn.addEventListener('click', () => {
+        if (confirm('새로운 스도쿠 게임을 시작하시겠습니까?')) {
+          startNewGame();
+        }
+      });
+
+      // Settings Modal
+      settingsBtn.addEventListener('click', () => {
+        settingsModal.classList.remove('hidden');
+      });
+      closeSettingsBtn.addEventListener('click', () => {
+        settingsModal.classList.add('hidden');
+      });
+
+      // Settings difficulty options
+      document.querySelectorAll('[data-diff-opt]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const diff = btn.dataset.diffOpt;
+          settingsModal.classList.add('hidden');
+          startNewGame(diff);
+        });
+      });
+
+      // Theme toggle
+      const savedTheme = localStorage.getItem('sudoku_theme');
+      let isDarkTheme = savedTheme !== 'light';
+      function applyTheme(dark) {
+        isDarkTheme = dark;
+        if (isDarkTheme) {
+          appBody.classList.remove('light-theme');
+          htmlEl.classList.add('dark');
+          if (themeLabel) themeLabel.textContent = '라이트 모드로 전환';
+        } else {
+          appBody.classList.add('light-theme');
+          htmlEl.classList.remove('dark');
+          if (themeLabel) themeLabel.textContent = '다크 모드로 전환';
+        }
+        localStorage.setItem('sudoku_theme', isDarkTheme ? 'dark' : 'light');
+      }
+      applyTheme(isDarkTheme);
+
+      themeToggleBtn.addEventListener('click', () => {
+        applyTheme(!isDarkTheme);
+      });
+
+      // Haptic toggle
+      const hapticToggleBtn = document.getElementById('hapticToggleBtn');
+      const hapticLabel = document.getElementById('hapticLabel');
+
+      function updateHapticUI() {
+        if (hapticLabel) {
+          if (isHapticEnabled) {
+            hapticLabel.textContent = '켜짐';
+            hapticLabel.className = 'text-xs font-bold text-emerald-400';
+          } else {
+            hapticLabel.textContent = '꺼짐';
+            hapticLabel.className = 'text-xs font-bold text-slate-500';
+          }
+        }
+      }
+      updateHapticUI();
+
+      if (hapticToggleBtn) {
+        hapticToggleBtn.addEventListener('click', () => {
+          isHapticEnabled = !isHapticEnabled;
+          localStorage.setItem('sudoku_haptic', isHapticEnabled ? 'true' : 'false');
+          updateHapticUI();
+          if (isHapticEnabled) {
+            try {
+              if ('vibrate' in navigator && typeof navigator.vibrate === 'function') {
+                navigator.vibrate(50);
+              }
+            } catch (e) {}
+          }
+        });
+      }
+
+      // Difficulty dropdown on title click
       diffMenuBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         diffMenu.classList.toggle('hidden');
@@ -1404,9 +1600,8 @@
       });
 
       newGameBtn.addEventListener('click', () => {
-        if (confirm('새 게임을 시작하시겠습니까? 현재 진행 상황은 저장되지 않습니다.')) {
-          startNewGame();
-        }
+        settingsModal.classList.add('hidden');
+        startNewGame();
       });
 
       modalNewGameBtn.addEventListener('click', () => startNewGame());
@@ -1425,10 +1620,9 @@
       // Help Modal
       helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
       closeHelpBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
-      helpOkBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
 
       // Close modal on outside click
-      [victoryModal, gameOverModal, helpModal].forEach(modal => {
+      [victoryModal, gameOverModal, helpModal, settingsModal].forEach(modal => {
         modal.addEventListener('click', (e) => {
           if (e.target === modal) modal.classList.add('hidden');
         });
