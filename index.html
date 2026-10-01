@@ -64,6 +64,7 @@
     #boardWrapper {
       border: 3.5px solid #3c6e8c !important;
       background-color: #08141b;
+      container-type: inline-size;
     }
 
     .sudoku-cell {
@@ -71,7 +72,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(1.15rem, 4.8vw, 1.85rem);
+      font-size: clamp(1.05rem, 5.1cqw, 1.85rem);
       font-weight: 500;
       cursor: pointer;
       box-sizing: border-box;
@@ -203,13 +204,22 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(0.55rem, 1.8vw, 0.75rem);
+      font-size: clamp(0.48rem, 1.85cqw, 0.72rem);
       font-weight: 600;
       line-height: 1;
       color: #7ca2b8;
     }
     .light-theme .pencil-num {
       color: #64748b;
+    }
+
+    /* Hide scrollbars on main container */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
 
     /* Confetti animation */
@@ -228,8 +238,8 @@
 </head>
 <body id="appBody" class="bg-[#071318] text-slate-100 h-screen h-[100dvh] max-h-[100dvh] overflow-hidden flex flex-col font-sans select-none antialiased">
 
-  <!-- Main Container: Guaranteed to fit mobile viewport without scrolling -->
-  <main class="flex-1 w-full max-w-[420px] mx-auto h-full flex flex-col justify-between items-center px-3 py-1.5 sm:py-2 overflow-hidden">
+  <!-- Main Container: Guaranteed to fit mobile viewport without scrolling, with safe-area bottom padding -->
+  <main class="flex-1 w-full max-w-[420px] mx-auto h-full max-h-[100dvh] flex flex-col justify-between items-center px-3 pt-1 pb-[max(0.6rem,env(safe-area-inset-bottom))] no-scrollbar overflow-y-auto overflow-x-hidden">
     
     <!-- Top Header & Status Section -->
     <header class="w-full flex flex-col gap-1 flex-shrink-0">
@@ -271,7 +281,7 @@
       </div>
 
       <!-- Status Pills: Mistakes & Timer -->
-      <div class="flex items-center justify-center gap-3 w-full py-0.5">
+      <div class="flex items-center justify-center gap-2.5 w-full py-0.5">
         <!-- Mistakes Pill -->
         <div class="flex items-center gap-1.5 bg-[#132530] border border-[#1e3847] px-3.5 py-1 rounded-full text-xs text-white shadow-sm">
           <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
@@ -301,9 +311,10 @@
       </div>
     </header>
 
-    <!-- Center: Sudoku Board (Responsive square, maximized available height) -->
-    <div class="relative w-full flex-1 min-h-0 flex items-center justify-center py-0.5">
-      <div id="boardWrapper" class="relative w-full max-w-[min(100%,min(410px,calc(100dvh-230px)))] aspect-square rounded-xl overflow-hidden shadow-2xl">
+    <!-- Center: Sudoku Board (Responsive square, dynamically fitted to available viewport height and width) -->
+    <div id="boardContainer" class="relative w-full flex-1 min-h-0 flex items-center justify-center py-0.5 overflow-hidden" style="container-type: size;">
+      <div id="boardWrapper" class="relative aspect-square rounded-xl overflow-hidden shadow-2xl flex-shrink-0"
+           style="width: min(100cqw, 100cqh, 400px); height: min(100cqw, 100cqh, 400px); max-width: min(100%, 400px); max-height: 100%;">
         <!-- 9x9 Grid -->
         <div id="sudokuBoard" class="sudoku-grid h-full select-none" role="grid" aria-label="스도쿠 판"></div>
 
@@ -326,54 +337,54 @@
     </div>
 
     <!-- Keypad: 5 Columns x 2 Rows (1-9 + Pencil) -->
-    <div class="w-full flex-shrink-0 pt-0.5 pb-1">
-      <div id="numberPad" class="grid grid-cols-5 gap-1.5 sm:gap-2 w-full max-w-[410px] mx-auto">
+    <div class="w-full flex-shrink-0 pt-0.5 pb-0.5 sm:pb-1">
+      <div id="numberPad" class="grid grid-cols-5 gap-1.5 sm:gap-2 w-full max-w-[400px] mx-auto">
         <!-- Generated via JS: Buttons 1 to 9 + Pencil button as #10 -->
       </div>
     </div>
 
     <!-- Bottom Action Bar: Undo, Erase, Hint, Help -->
-    <div class="w-full flex-shrink-0 pb-1">
-      <div class="flex items-center justify-around w-full max-w-[390px] mx-auto px-2">
+    <div class="w-full flex-shrink-0 pt-0.5 pb-0.5">
+      <div class="flex items-center justify-around w-full max-w-[390px] mx-auto px-1 sm:px-2">
         <!-- Undo -->
-        <button id="undoBtn" class="flex flex-col items-center gap-1 group" aria-label="실행 취소">
-          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-slate-200 group-hover:bg-[#1a3444] transition active:scale-95 shadow-md">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button id="undoBtn" class="flex flex-col items-center gap-0.5 sm:gap-1 group" aria-label="실행 취소">
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-slate-200 group-hover:bg-[#1a3444] transition active:scale-95 shadow-md">
+            <svg class="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h10a5 5 0 015 5v2m0 0l-4-4m4 4l4-4M3 10l4-4M3 10l4 4"></path>
             </svg>
           </div>
-          <span class="text-[10px] sm:text-[11px] font-medium text-[#7c9cae]">실행 취소</span>
+          <span class="text-[10px] sm:text-[11px] leading-tight font-medium text-[#7c9cae]">실행 취소</span>
         </button>
 
         <!-- Erase -->
-        <button id="eraseBtn" class="flex flex-col items-center gap-1 group" aria-label="지우기">
-          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-slate-200 group-hover:bg-[#1a3444] transition active:scale-95 shadow-md">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button id="eraseBtn" class="flex flex-col items-center gap-0.5 sm:gap-1 group" aria-label="지우기">
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-slate-200 group-hover:bg-[#1a3444] transition active:scale-95 shadow-md">
+            <svg class="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
             </svg>
           </div>
-          <span class="text-[10px] sm:text-[11px] font-medium text-[#7c9cae]">지우기</span>
+          <span class="text-[10px] sm:text-[11px] leading-tight font-medium text-[#7c9cae]">지우기</span>
         </button>
 
         <!-- Hint -->
-        <button id="hintBtn" class="flex flex-col items-center gap-1 group relative" aria-label="힌트">
-          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-amber-400 group-hover:bg-[#1a3444] transition active:scale-95 shadow-md relative">
+        <button id="hintBtn" class="flex flex-col items-center gap-0.5 sm:gap-1 group relative" aria-label="힌트">
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-amber-400 group-hover:bg-[#1a3444] transition active:scale-95 shadow-md relative">
             <span id="hintCount" class="absolute -top-1 -right-1 text-[10px] font-bold w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center">3</span>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
             </svg>
           </div>
-          <span class="text-[10px] sm:text-[11px] font-medium text-[#7c9cae]">힌트</span>
+          <span class="text-[10px] sm:text-[11px] leading-tight font-medium text-[#7c9cae]">힌트</span>
         </button>
 
         <!-- Help -->
-        <button id="helpBtn" class="flex flex-col items-center gap-1 group" aria-label="도움말">
-          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-slate-200 group-hover:bg-[#1a3444] transition active:scale-95 shadow-md">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button id="helpBtn" class="flex flex-col items-center gap-0.5 sm:gap-1 group" aria-label="도움말">
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-slate-200 group-hover:bg-[#1a3444] transition active:scale-95 shadow-md">
+            <svg class="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
           </div>
-          <span class="text-[10px] sm:text-[11px] font-medium text-[#7c9cae]">도움말</span>
+          <span class="text-[10px] sm:text-[11px] leading-tight font-medium text-[#7c9cae]">도움말</span>
         </button>
       </div>
     </div>
@@ -973,7 +984,7 @@
           const btn = document.createElement('button');
           btn.id = `pad-btn-${num}`;
           btn.dataset.number = num;
-          btn.className = 'h-11 sm:h-12 rounded-lg bg-[#2e7d32] hover:bg-[#388e3c] border-b-2 border-[#1b5e20] text-white font-bold text-lg sm:text-xl active:translate-y-0.5 shadow-md flex items-center justify-center transition-transform';
+          btn.className = 'h-10 sm:h-11 rounded-lg bg-[#2e7d32] hover:bg-[#388e3c] border-b-2 border-[#1b5e20] text-white font-bold text-lg sm:text-xl active:translate-y-0.5 shadow-md flex items-center justify-center transition-transform';
           btn.textContent = num;
           btn.addEventListener('click', () => onNumberInput(num));
           numberPadEl.appendChild(btn);
@@ -982,7 +993,7 @@
         // 10th button: Pencil Mode toggle (as shown in screenshot)
         pencilPadBtn = document.createElement('button');
         pencilPadBtn.id = 'pad-btn-pencil';
-        pencilPadBtn.className = 'h-11 sm:h-12 rounded-lg bg-[#1e502c] hover:bg-[#256337] border-b-2 border-[#12361b] text-white text-base active:translate-y-0.5 shadow-md flex items-center justify-center transition-all';
+        pencilPadBtn.className = 'h-10 sm:h-11 rounded-lg bg-[#1e502c] hover:bg-[#256337] border-b-2 border-[#12361b] text-white text-base active:translate-y-0.5 shadow-md flex items-center justify-center transition-all';
         pencilPadBtn.innerHTML = `
           <svg class="w-5 h-5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
@@ -1416,6 +1427,7 @@
 
         renderBoard();
         startTimer();
+        updateBoardSize();
       }
 
       function resetCurrentPuzzle() {
@@ -1430,6 +1442,7 @@
         state.selectedCell = null;
         renderBoard();
         startTimer();
+        updateBoardSize();
       }
 
       // --- Keyboard Navigation & Shortcuts ---
@@ -1628,10 +1641,39 @@
         });
       });
 
+      // --- Dynamic Board Sizing ---
+      function updateBoardSize() {
+        const container = document.getElementById('boardContainer');
+        const wrapper = document.getElementById('boardWrapper');
+        if (!container || !wrapper) return;
+
+        const pad = 6;
+        const availW = container.clientWidth - pad;
+        const availH = container.clientHeight - pad;
+        if (availW <= 0 || availH <= 0) return;
+
+        // Size board to the exact minimum of available width and height (max 400px)
+        const size = Math.floor(Math.min(availW, availH, 400));
+        if (size > 60) {
+          wrapper.style.width = `${size}px`;
+          wrapper.style.height = `${size}px`;
+        }
+      }
+
+      window.addEventListener('resize', updateBoardSize);
+      window.addEventListener('orientationchange', () => setTimeout(updateBoardSize, 100));
+      if (window.ResizeObserver) {
+        const ro = new ResizeObserver(() => updateBoardSize());
+        const container = document.getElementById('boardContainer');
+        if (container) ro.observe(container);
+      }
+
       // --- Startup ---
       initBoardDOM();
       initNumberPadDOM();
       startNewGame('medium');
+      updateBoardSize();
+      requestAnimationFrame(updateBoardSize);
 
     })();
   </script>
