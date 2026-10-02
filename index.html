@@ -1055,7 +1055,7 @@
           const isSelected = activeNum === num;
 
           if (isSelected) {
-            btn.className = 'h-11 sm:h-12 rounded-2xl bg-[#445160] border border-[#62778c] text-white font-bold text-xl sm:text-2xl active:scale-95 shadow-md flex items-center justify-center transition-all select-none';
+            btn.className = 'h-11 sm:h-12 rounded-2xl bg-[#aee6fb] ring-[2.5px] ring-[#0284c7] text-[#061e2f] font-black text-xl sm:text-2xl scale-[1.03] active:scale-95 shadow-[0_0_12px_rgba(2,132,199,0.4)] flex items-center justify-center transition-all select-none';
           } else {
             btn.className = 'h-11 sm:h-12 rounded-2xl bg-[#82c3e1] hover:bg-[#92cee9] text-[#0f2838] font-bold text-xl sm:text-2xl active:scale-95 shadow-sm flex items-center justify-center transition-all select-none';
           }
@@ -1069,7 +1069,7 @@
 
         if (pencilPadBtn) {
           if (state.isPencilMode) {
-            pencilPadBtn.className = 'h-11 sm:h-12 rounded-2xl bg-[#445160] border border-cyan-400/60 ring-2 ring-cyan-400/40 text-cyan-300 active:scale-95 shadow-md flex items-center justify-center transition-all select-none';
+            pencilPadBtn.className = 'h-11 sm:h-12 rounded-2xl bg-[#aee6fb] ring-[2.5px] ring-[#0284c7] text-[#0284c7] font-black scale-[1.03] active:scale-95 shadow-[0_0_12px_rgba(2,132,199,0.4)] flex items-center justify-center transition-all select-none';
           } else {
             pencilPadBtn.className = 'h-11 sm:h-12 rounded-2xl bg-[#82c3e1] hover:bg-[#92cee9] text-[#0f2838] active:scale-95 shadow-sm flex items-center justify-center transition-all select-none';
           }
@@ -1171,9 +1171,7 @@
         if (state.isPaused || state.isCompleted) return;
         state.selectedCell = { r, c };
         const val = state.currentBoard[r][c];
-        if (val > 0) {
-          state.activePadNumber = val;
-        }
+        state.activePadNumber = val > 0 ? val : 0;
         soundClick();
         renderBoard();
       }
