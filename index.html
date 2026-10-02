@@ -62,7 +62,7 @@
     }
 
     #boardWrapper {
-      border: 3.5px solid #3c6e8c !important;
+      border: 3px solid #2d516b !important;
       background-color: #08141b;
       container-type: inline-size;
     }
@@ -72,13 +72,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(1.05rem, 5.1cqw, 1.85rem);
-      font-weight: 500;
+      font-size: clamp(1.65rem, 8cqw, 2.75rem);
+      font-weight: 700;
+      line-height: 1;
       cursor: pointer;
       box-sizing: border-box;
-      transition: background-color 0.1s ease;
-      border-right: 1px solid #162f3c;
-      border-bottom: 1px solid #162f3c;
+      transition: background-color 0.08s ease;
+      border-right: 1px solid #142a38;
+      border-bottom: 1px solid #142a38;
       border-top: none;
       border-left: none;
       background-color: #08141b;
@@ -88,12 +89,12 @@
     /* 3x3 Box Thick Borders */
     .sudoku-cell[data-col="2"],
     .sudoku-cell[data-col="5"] {
-      border-right: 3.5px solid #3c6e8c !important;
+      border-right: 3px solid #2d516b !important;
     }
 
     .sudoku-cell[data-row="2"],
     .sudoku-cell[data-row="5"] {
-      border-bottom: 3.5px solid #3c6e8c !important;
+      border-bottom: 3px solid #2d516b !important;
     }
 
     /* Outer right and bottom edges */
@@ -109,14 +110,14 @@
       background-color: #08141b;
     }
     .sudoku-cell.cell-related {
-      background-color: #122732;
+      background-color: #0e222e;
     }
     .sudoku-cell.cell-match {
-      background-color: #1d4436;
+      background-color: #23435e !important;
     }
     .sudoku-cell.cell-selected {
-      background-color: #2d6b49 !important;
-      box-shadow: inset 0 0 0 2px #34d399 !important;
+      background-color: #1e3b52 !important;
+      box-shadow: inset 0 0 0 2.5px #60a5fa !important;
       z-index: 10;
     }
     .sudoku-cell.cell-wrong {
@@ -125,14 +126,14 @@
       z-index: 10;
     }
 
-    /* Numbers in cells */
+    /* Numbers in cells: Bright ice-blue for clues, warm gold yellow for user input */
     .sudoku-cell .num-clue {
       font-weight: 700;
-      color: #ffffff;
+      color: #e0f2fe;
     }
     .sudoku-cell .num-user {
-      font-weight: 600;
-      color: #6ee7b7;
+      font-weight: 700;
+      color: #f6d27e;
     }
     .sudoku-cell .num-wrong {
       font-weight: 700;
@@ -170,21 +171,21 @@
       background-color: #f1f5f9;
     }
     .light-theme .sudoku-cell.cell-match {
-      background-color: #d1fae5;
+      background-color: #bae6fd !important;
     }
     .light-theme .sudoku-cell.cell-selected {
-      background-color: #a7f3d0 !important;
-      box-shadow: inset 0 0 0 2px #059669 !important;
+      background-color: #93c5fd !important;
+      box-shadow: inset 0 0 0 2px #2563eb !important;
     }
     .light-theme .sudoku-cell.cell-wrong {
       background-color: #fee2e2 !important;
       box-shadow: inset 0 0 0 2px #dc2626 !important;
     }
     .light-theme .sudoku-cell .num-clue {
-      color: #0f172a;
+      color: #0284c7;
     }
     .light-theme .sudoku-cell .num-user {
-      color: #047857;
+      color: #d97706;
     }
     .light-theme .sudoku-cell .num-wrong {
       color: #dc2626 !important;
@@ -197,20 +198,36 @@
       grid-template-rows: repeat(3, 1fr);
       width: 100%;
       height: 100%;
-      padding: 2px;
+      padding: 1.5px;
       pointer-events: none;
     }
     .pencil-num {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(0.48rem, 1.85cqw, 0.72rem);
+      font-size: clamp(0.55rem, 2.3cqw, 0.82rem);
       font-weight: 600;
       line-height: 1;
-      color: #7ca2b8;
+      color: #7296ab;
+      transition: all 0.12s ease;
+    }
+    /* Highlight matching candidate note when number is selected */
+    .pencil-num.pencil-match {
+      color: #ffffff !important;
+      background-color: #0284c7 !important;
+      font-weight: 900 !important;
+      font-size: clamp(0.68rem, 2.6cqw, 0.95rem) !important;
+      border-radius: 3px;
+      box-shadow: 0 0 5px rgba(2, 132, 199, 0.8);
     }
     .light-theme .pencil-num {
       color: #64748b;
+    }
+    .light-theme .pencil-num.pencil-match {
+      color: #ffffff !important;
+      background-color: #2563eb !important;
+      font-weight: 900 !important;
+      border-radius: 3px;
     }
 
     /* Hide scrollbars on main container */
@@ -238,26 +255,27 @@
 </head>
 <body id="appBody" class="bg-[#071318] text-slate-100 h-screen h-[100dvh] max-h-[100dvh] overflow-hidden flex flex-col font-sans select-none antialiased">
 
-  <!-- Main Container: Guaranteed to fit mobile viewport without scrolling, with safe-area bottom padding -->
-  <main class="flex-1 w-full max-w-[420px] mx-auto h-full max-h-[100dvh] flex flex-col justify-between items-center px-3 pt-1 pb-[max(0.6rem,env(safe-area-inset-bottom))] no-scrollbar overflow-y-auto overflow-x-hidden">
+  <!-- Main Container: Maximum board space with tight vertical gaps and zero pill slop -->
+  <main class="flex-1 w-full max-w-[430px] mx-auto h-full max-h-[100dvh] flex flex-col justify-start items-center px-1.5 sm:px-2.5 pt-0.5 pb-[max(0.4rem,env(safe-area-inset-bottom))] no-scrollbar overflow-y-auto overflow-x-hidden gap-1">
     
     <!-- Top Header & Status Section -->
-    <header class="w-full flex flex-col gap-1 flex-shrink-0">
-      <!-- Nav Row: Back / Title & Difficulty / Settings -->
+    <header class="w-full flex flex-col gap-0.5 flex-shrink-0">
+      <!-- Nav Row: Back / Subtitle & Title / Settings -->
       <div class="flex items-center justify-between w-full pt-0.5">
         <!-- Back Button -->
-        <button id="backBtn" aria-label="새 게임" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-white hover:bg-[#1a3444] transition active:scale-95 shadow-sm">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button id="backBtn" aria-label="새 게임" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-white hover:bg-[#1a3444] transition active:scale-95 shadow-sm">
+          <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
           </svg>
         </button>
 
-        <!-- Center: Difficulty Selector (Clean, single-line) -->
+        <!-- Center: Subtitle + Title / Difficulty Dropdown (Matching Screenshot Header) -->
         <div class="relative flex flex-col items-center">
-          <button id="diffMenuBtn" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#132530] border border-[#1e3847] text-sm font-bold text-white hover:text-emerald-400 hover:border-emerald-500/40 transition active:scale-95 shadow-sm" aria-label="난이도 선택">
-            <span class="text-[#7c9cae] font-normal text-xs">난이도:</span>
+          <span id="dailyDateLabel" class="text-[10.5px] sm:text-xs text-[#7ca2b8] font-medium leading-none mb-0.5">일일 보통 스도쿠</span>
+          <button id="diffMenuBtn" class="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#132530] border border-[#1e3847] text-xs font-bold text-white hover:text-cyan-300 hover:border-cyan-500/40 transition active:scale-95 shadow-sm" aria-label="난이도 선택">
+            <span class="text-[#7c9cae] font-normal text-[11px]">난이도:</span>
             <span id="currentDiffLabel">보통</span>
-            <svg class="w-3.5 h-3.5 text-[#7c9cae]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3 h-3 text-[#7c9cae]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
             </svg>
           </button>
@@ -272,8 +290,8 @@
         </div>
 
         <!-- Settings Gear Button -->
-        <button id="settingsBtn" aria-label="설정" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-white hover:bg-[#1a3444] transition active:scale-95 shadow-sm">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button id="settingsBtn" aria-label="설정" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#132530] border border-[#1e3847] flex items-center justify-center text-white hover:bg-[#1a3444] transition active:scale-95 shadow-sm">
+          <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
           </svg>
@@ -281,9 +299,9 @@
       </div>
 
       <!-- Status Pills: Mistakes & Timer -->
-      <div class="flex items-center justify-center gap-2.5 w-full py-0.5">
+      <div class="flex items-center justify-center gap-2 w-full py-0.5">
         <!-- Mistakes Pill -->
-        <div class="flex items-center gap-1.5 bg-[#132530] border border-[#1e3847] px-3.5 py-1 rounded-full text-xs text-white shadow-sm">
+        <div class="flex items-center gap-1.5 bg-[#132530] border border-[#1e3847] px-3 py-0.5 rounded-full text-xs text-white shadow-sm">
           <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
             <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
           </svg>
@@ -293,7 +311,7 @@
         </div>
 
         <!-- Timer Pill -->
-        <div class="flex items-center gap-1.5 bg-[#132530] border border-[#1e3847] px-3 py-1 rounded-full text-xs text-white shadow-sm">
+        <div class="flex items-center gap-1.5 bg-[#132530] border border-[#1e3847] px-3 py-0.5 rounded-full text-xs text-white shadow-sm">
           <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="9" stroke-width="2"></circle>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3"></path>
@@ -311,10 +329,10 @@
       </div>
     </header>
 
-    <!-- Center: Sudoku Board (Responsive square, dynamically fitted to available viewport height and width) -->
-    <div id="boardContainer" class="relative w-full flex-1 min-h-0 flex items-center justify-center py-0.5 overflow-hidden" style="container-type: size;">
+    <!-- Center: Sudoku Board (Maximized responsive square) -->
+    <div id="boardContainer" class="relative w-full flex-1 min-h-0 flex items-center justify-center p-0 overflow-hidden" style="container-type: size;">
       <div id="boardWrapper" class="relative aspect-square rounded-xl overflow-hidden shadow-2xl flex-shrink-0"
-           style="width: min(100cqw, 100cqh, 400px); height: min(100cqw, 100cqh, 400px); max-width: min(100%, 400px); max-height: 100%;">
+           style="width: min(100cqw, 100cqh, 480px); height: min(100cqw, 100cqh, 480px); max-width: 100%; max-height: 100%;">
         <!-- 9x9 Grid -->
         <div id="sudokuBoard" class="sudoku-grid h-full select-none" role="grid" aria-label="스도쿠 판"></div>
 
@@ -337,8 +355,8 @@
     </div>
 
     <!-- Keypad: 5 Columns x 2 Rows (1-9 + Pencil) -->
-    <div class="w-full flex-shrink-0 pt-0.5 pb-0.5 sm:pb-1">
-      <div id="numberPad" class="grid grid-cols-5 gap-1.5 sm:gap-2 w-full max-w-[400px] mx-auto">
+    <div class="w-full flex-shrink-0 pt-0 pb-0.5">
+      <div id="numberPad" class="grid grid-cols-5 gap-1.5 sm:gap-2 w-full max-w-[420px] mx-auto">
         <!-- Generated via JS: Buttons 1 to 9 + Pencil button as #10 -->
       </div>
     </div>
@@ -797,6 +815,7 @@
         currentBoard: [],
         notes: Array(9).fill(0).map(() => Array(9).fill(0).map(() => new Set())),
         selectedCell: null, // { r, c }
+        activePadNumber: 0,
         mistakes: 0,
         maxMistakes: 3,
         timerSeconds: 0,
@@ -984,24 +1003,32 @@
           const btn = document.createElement('button');
           btn.id = `pad-btn-${num}`;
           btn.dataset.number = num;
-          btn.className = 'h-10 sm:h-11 rounded-lg bg-[#2e7d32] hover:bg-[#388e3c] border-b-2 border-[#1b5e20] text-white font-bold text-lg sm:text-xl active:translate-y-0.5 shadow-md flex items-center justify-center transition-transform';
+          btn.className = 'h-11 sm:h-12 rounded-2xl bg-[#82c3e1] hover:bg-[#92cee9] text-[#0f2838] font-bold text-xl sm:text-2xl active:scale-95 shadow-sm flex items-center justify-center transition-all select-none';
           btn.textContent = num;
-          btn.addEventListener('click', () => onNumberInput(num));
+          btn.addEventListener('click', () => onNumberPadClicked(num));
           numberPadEl.appendChild(btn);
         }
 
         // 10th button: Pencil Mode toggle (as shown in screenshot)
         pencilPadBtn = document.createElement('button');
         pencilPadBtn.id = 'pad-btn-pencil';
-        pencilPadBtn.className = 'h-10 sm:h-11 rounded-lg bg-[#1e502c] hover:bg-[#256337] border-b-2 border-[#12361b] text-white text-base active:translate-y-0.5 shadow-md flex items-center justify-center transition-all';
+        pencilPadBtn.className = 'h-11 sm:h-12 rounded-2xl bg-[#82c3e1] hover:bg-[#92cee9] text-[#0f2838] active:scale-95 shadow-sm flex items-center justify-center transition-all select-none';
         pencilPadBtn.innerHTML = `
-          <svg class="w-5 h-5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+          <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
           </svg>
         `;
         pencilPadBtn.title = '메모 모드 (N / P)';
         pencilPadBtn.addEventListener('click', togglePencilMode);
         numberPadEl.appendChild(pencilPadBtn);
+      }
+
+      function getActiveHighlightNumber() {
+        if (state.selectedCell) {
+          const val = state.currentBoard[state.selectedCell.r][state.selectedCell.c];
+          if (val > 0) return val;
+        }
+        return state.activePadNumber || 0;
       }
 
       function updatePadRemainingCounts() {
@@ -1019,21 +1046,39 @@
           }
         }
 
+        const activeNum = getActiveHighlightNumber();
+
         for (let num = 1; num <= 9; num++) {
           const btn = document.getElementById(`pad-btn-${num}`);
           if (!btn) continue;
           const remaining = 9 - counts[num];
-          if (remaining <= 0) {
-            btn.classList.add('opacity-30');
+          const isSelected = activeNum === num;
+
+          if (isSelected) {
+            btn.className = 'h-11 sm:h-12 rounded-2xl bg-[#445160] border border-[#62778c] text-white font-bold text-xl sm:text-2xl active:scale-95 shadow-md flex items-center justify-center transition-all select-none';
           } else {
-            btn.classList.remove('opacity-30');
+            btn.className = 'h-11 sm:h-12 rounded-2xl bg-[#82c3e1] hover:bg-[#92cee9] text-[#0f2838] font-bold text-xl sm:text-2xl active:scale-95 shadow-sm flex items-center justify-center transition-all select-none';
+          }
+
+          if (remaining <= 0) {
+            btn.classList.add('opacity-30', 'pointer-events-none');
+          } else {
+            btn.classList.remove('opacity-30', 'pointer-events-none');
+          }
+        }
+
+        if (pencilPadBtn) {
+          if (state.isPencilMode) {
+            pencilPadBtn.className = 'h-11 sm:h-12 rounded-2xl bg-[#445160] border border-cyan-400/60 ring-2 ring-cyan-400/40 text-cyan-300 active:scale-95 shadow-md flex items-center justify-center transition-all select-none';
+          } else {
+            pencilPadBtn.className = 'h-11 sm:h-12 rounded-2xl bg-[#82c3e1] hover:bg-[#92cee9] text-[#0f2838] active:scale-95 shadow-sm flex items-center justify-center transition-all select-none';
           }
         }
       }
 
       function renderBoard() {
         const sel = state.selectedCell;
-        const selVal = sel ? state.currentBoard[sel.r][sel.c] : 0;
+        const activeNum = getActiveHighlightNumber();
 
         for (let r = 0; r < 9; r++) {
           for (let c = 0; c < 9; c++) {
@@ -1053,7 +1098,7 @@
             // Determine Highlights
             const isSelected = sel && sel.r === r && sel.c === c;
             const isSameRowColBox = sel && (sel.r === r || sel.c === c || (Math.floor(sel.r / 3) === Math.floor(r / 3) && Math.floor(sel.c / 3) === Math.floor(c / 3)));
-            const isSameNumber = selVal > 0 && val === selVal;
+            const isSameNumber = activeNum > 0 && val === activeNum;
 
             if (isWrong) {
               cell.classList.add('cell-wrong');
@@ -1083,7 +1128,9 @@
             } else if (notes.size > 0) {
               let noteHtml = '<div class="pencil-grid">';
               for (let n = 1; n <= 9; n++) {
-                noteHtml += `<span class="pencil-num">${notes.has(n) ? n : ''}</span>`;
+                const hasNote = notes.has(n);
+                const isMatch = hasNote && activeNum > 0 && n === activeNum;
+                noteHtml += `<span class="${isMatch ? 'pencil-num pencil-match' : 'pencil-num'}">${hasNote ? n : ''}</span>`;
               }
               noteHtml += '</div>';
               cell.innerHTML = noteHtml;
@@ -1123,6 +1170,27 @@
       function onCellClicked(r, c) {
         if (state.isPaused || state.isCompleted) return;
         state.selectedCell = { r, c };
+        const val = state.currentBoard[r][c];
+        if (val > 0) {
+          state.activePadNumber = val;
+        }
+        soundClick();
+        renderBoard();
+      }
+
+      // --- Keypad Click Handling ---
+      function onNumberPadClicked(num) {
+        if (state.isPaused || state.isCompleted) return;
+        state.activePadNumber = num;
+
+        if (state.selectedCell) {
+          const { r, c } = state.selectedCell;
+          if (state.initialPuzzle[r][c] === 0) {
+            onNumberInput(num);
+            return;
+          }
+        }
+
         soundClick();
         renderBoard();
       }
@@ -1130,6 +1198,7 @@
       // --- Number Input & Pencil Handling ---
       function onNumberInput(num) {
         if (state.isPaused || state.isCompleted || !state.selectedCell) return;
+        state.activePadNumber = num;
         const { r, c } = state.selectedCell;
 
         // Cannot edit pre-filled initial clues
@@ -1324,16 +1393,8 @@
       // --- Pencil Mode Toggle ---
       function togglePencilMode() {
         state.isPencilMode = !state.isPencilMode;
-        if (pencilPadBtn) {
-          if (state.isPencilMode) {
-            pencilPadBtn.classList.remove('bg-[#1e502c]', 'hover:bg-[#256337]', 'border-[#12361b]');
-            pencilPadBtn.classList.add('bg-amber-600', 'hover:bg-amber-500', 'border-amber-800', 'ring-2', 'ring-amber-300');
-          } else {
-            pencilPadBtn.classList.remove('bg-amber-600', 'hover:bg-amber-500', 'border-amber-800', 'ring-2', 'ring-amber-300');
-            pencilPadBtn.classList.add('bg-[#1e502c]', 'hover:bg-[#256337]', 'border-[#12361b]');
-          }
-        }
         soundClick();
+        updatePadRemainingCounts();
       }
 
       // --- Completion Check ---
@@ -1388,6 +1449,13 @@
         if (currentDiffLabel) {
           currentDiffLabel.textContent = diff;
         }
+        const dailyDateLabel = document.getElementById('dailyDateLabel');
+        if (dailyDateLabel) {
+          const now = new Date();
+          const m = now.getMonth() + 1;
+          const d = now.getDate();
+          dailyDateLabel.textContent = `일일 ${diff} 스도쿠 ${m}월 ${d}일`;
+        }
       }
 
       // --- New Game & Reset ---
@@ -1401,6 +1469,7 @@
         state.currentBoard = SudokuEngine.copyBoard(puzzle);
         state.notes = Array(9).fill(0).map(() => Array(9).fill(0).map(() => new Set()));
         state.selectedCell = null;
+        state.activePadNumber = 0;
         state.mistakes = 0;
         state.timerSeconds = 0;
         state.isPaused = false;
@@ -1408,11 +1477,6 @@
         state.moveHistory = [];
         state.isCompleted = false;
         state.isPencilMode = false;
-
-        if (pencilPadBtn) {
-          pencilPadBtn.classList.remove('bg-amber-600', 'hover:bg-amber-500', 'border-amber-800', 'ring-2', 'ring-amber-300');
-          pencilPadBtn.classList.add('bg-[#1e502c]', 'hover:bg-[#256337]', 'border-[#12361b]');
-        }
 
         mistakeCount.textContent = '0';
         hintCount.textContent = '3';
@@ -1440,6 +1504,7 @@
         mistakeCount.textContent = '0';
         timerText.textContent = '00:00';
         state.selectedCell = null;
+        state.activePadNumber = 0;
         renderBoard();
         startTimer();
         updateBoardSize();
@@ -1452,7 +1517,7 @@
 
         // Number keys (1-9)
         if (e.key >= '1' && e.key <= '9') {
-          onNumberInput(parseInt(e.key, 10));
+          onNumberPadClicked(parseInt(e.key, 10));
           return;
         }
 
@@ -1647,13 +1712,13 @@
         const wrapper = document.getElementById('boardWrapper');
         if (!container || !wrapper) return;
 
-        const pad = 6;
+        const pad = 2;
         const availW = container.clientWidth - pad;
         const availH = container.clientHeight - pad;
         if (availW <= 0 || availH <= 0) return;
 
-        // Size board to the exact minimum of available width and height (max 400px)
-        const size = Math.floor(Math.min(availW, availH, 400));
+        // Size board to the exact minimum of available width and height (up to 480px)
+        const size = Math.floor(Math.min(availW, availH, 480));
         if (size > 60) {
           wrapper.style.width = `${size}px`;
           wrapper.style.height = `${size}px`;
