@@ -116,8 +116,8 @@
       background-color: #23435e !important;
     }
     .sudoku-cell.cell-selected {
-      background-color: #1e3b52 !important;
-      box-shadow: inset 0 0 0 2.5px #60a5fa !important;
+      background-color: #1a2a36 !important;
+      box-shadow: inset 0 0 0 2.5px #f6d27e, inset 0 0 8px rgba(246, 210, 126, 0.25) !important;
       z-index: 10;
     }
     .sudoku-cell.cell-wrong {
@@ -174,8 +174,8 @@
       background-color: #bae6fd !important;
     }
     .light-theme .sudoku-cell.cell-selected {
-      background-color: #93c5fd !important;
-      box-shadow: inset 0 0 0 2px #2563eb !important;
+      background-color: #fef9c3 !important;
+      box-shadow: inset 0 0 0 2.5px #eab308 !important;
     }
     .light-theme .sudoku-cell.cell-wrong {
       background-color: #fee2e2 !important;
@@ -208,26 +208,27 @@
       font-size: clamp(0.55rem, 2.3cqw, 0.82rem);
       font-weight: 600;
       line-height: 1;
-      color: #7296ab;
+      color: #94a3b8;
       transition: all 0.12s ease;
     }
     /* Highlight matching candidate note when number is selected */
     .pencil-num.pencil-match {
-      color: #ffffff !important;
-      background-color: #0284c7 !important;
+      color: #1c1202 !important;
+      background-color: #f6d27e !important;
       font-weight: 900 !important;
       font-size: clamp(0.68rem, 2.6cqw, 0.95rem) !important;
       border-radius: 3px;
-      box-shadow: 0 0 5px rgba(2, 132, 199, 0.8);
+      box-shadow: 0 0 6px rgba(246, 210, 126, 0.7);
     }
     .light-theme .pencil-num {
       color: #64748b;
     }
     .light-theme .pencil-num.pencil-match {
-      color: #ffffff !important;
-      background-color: #2563eb !important;
+      color: #1c1202 !important;
+      background-color: #f6d27e !important;
       font-weight: 900 !important;
       border-radius: 3px;
+      box-shadow: 0 0 6px rgba(246, 210, 126, 0.6);
     }
 
     /* Hide scrollbars on main container */
@@ -1055,7 +1056,7 @@
           const isSelected = activeNum === num;
 
           if (isSelected) {
-            btn.className = 'h-11 sm:h-12 rounded-2xl bg-[#aee6fb] ring-[2.5px] ring-[#0284c7] text-[#061e2f] font-black text-xl sm:text-2xl scale-[1.03] active:scale-95 shadow-[0_0_12px_rgba(2,132,199,0.4)] flex items-center justify-center transition-all select-none';
+            btn.className = 'h-11 sm:h-12 rounded-2xl bg-[#f6d27e] ring-[2.5px] ring-[#eab308] text-[#1c1202] font-black text-xl sm:text-2xl scale-[1.03] active:scale-95 shadow-[0_0_14px_rgba(246,210,126,0.6)] flex items-center justify-center transition-all select-none';
           } else {
             btn.className = 'h-11 sm:h-12 rounded-2xl bg-[#82c3e1] hover:bg-[#92cee9] text-[#0f2838] font-bold text-xl sm:text-2xl active:scale-95 shadow-sm flex items-center justify-center transition-all select-none';
           }
@@ -1069,7 +1070,7 @@
 
         if (pencilPadBtn) {
           if (state.isPencilMode) {
-            pencilPadBtn.className = 'h-11 sm:h-12 rounded-2xl bg-[#aee6fb] ring-[2.5px] ring-[#0284c7] text-[#0284c7] font-black scale-[1.03] active:scale-95 shadow-[0_0_12px_rgba(2,132,199,0.4)] flex items-center justify-center transition-all select-none';
+            pencilPadBtn.className = 'h-11 sm:h-12 rounded-2xl bg-[#f6d27e] ring-[2.5px] ring-[#eab308] text-[#1c1202] font-black scale-[1.03] active:scale-95 shadow-[0_0_14px_rgba(246,210,126,0.6)] flex items-center justify-center transition-all select-none';
           } else {
             pencilPadBtn.className = 'h-11 sm:h-12 rounded-2xl bg-[#82c3e1] hover:bg-[#92cee9] text-[#0f2838] active:scale-95 shadow-sm flex items-center justify-center transition-all select-none';
           }
